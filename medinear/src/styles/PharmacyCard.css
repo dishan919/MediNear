@@ -1,0 +1,121 @@
+.pharmacy-card {
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.pharmacy-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1);
+}
+
+.pharmacy-image-container {
+  position: relative;
+  width: 100%;
+  height: 190px;
+  background: #ecfdf5;
+}
+
+.pharmacy-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pharmacy-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-size: 60px;
+  background:
+    linear-gradient(
+      135deg,
+      #dcfce7,
+      #ecfeff
+    );
+}
+
+.status-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 7px 12px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.status-open {
+  background: #16a34a;
+}
+
+.status-closed {
+  background: #dc2626;
+}
+
+.pharmacy-content {
+  padding: 20px;
+}
+
+.pharmacy-name {
+  margin: 0 0 12px;
+  color: #0f172a;
+  font-size: 21px;
+}
+
+.pharmacy-address,
+.pharmacy-district,
+.pharmacy-phone,
+.pharmacy-hours {
+  margin: 8px 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.pharmacy-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.pharmacy-actions button {
+  flex: 1;
+  padding: 11px 14px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.pharmacy-actions button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.call-button {
+  color: #ffffff;
+  background: #16a34a;
+}
+
+.direction-button {
+  color: #047857;
+  background: #d1fae5;
+}
+
+@media (max-width: 480px) {
+  .pharmacy-actions {
+    flex-direction: column;
+  }
+}
