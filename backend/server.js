@@ -4,20 +4,17 @@ const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const pharmacyRoutes = require("./routes/pharmacyRoutes");
+const userRoutes = require("./routes/userRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 dotenv.config();
-
 connectDB();
 
 const app = express();
 
-// Allow React frontend to connect with backend
 app.use(cors());
-
-// Convert JSON request body into JavaScript object
 app.use(express.json());
 
-// Basic testing route
 app.get("/", (req, res) => {
   res.json({
     success: true,
@@ -25,10 +22,10 @@ app.get("/", (req, res) => {
   });
 });
 
-// Pharmacy API routes
+app.use("/api/auth", authRoutes);
 app.use("/api/pharmacies", pharmacyRoutes);
+app.use("/api/users", userRoutes);
 
-// Handle unknown routes
 app.use((req, res) => {
   res.status(404).json({
     success: false,

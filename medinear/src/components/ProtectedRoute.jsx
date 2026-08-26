@@ -1,9 +1,9 @@
 import { Navigate, Outlet } from "react-router-dom";
 
 function ProtectedRoute() {
-  const loggedInUser = localStorage.getItem("loggedInUser");
+  const token = localStorage.getItem("token");
 
-  if (!loggedInUser) {
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
 

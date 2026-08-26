@@ -14,6 +14,7 @@ function Register() {
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   function handleChange(event) {
@@ -62,46 +63,42 @@ function Register() {
     return true;
   }
 
-  function handleRegister(event) {
+  async function handleRegister(event) {
     event.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    const savedUsers =
-      JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      setLoading(true);
+      setError("");
 
-    const userAlreadyExists = savedUsers.some(
-      (user) =>
-        user.email.toLowerCase() ===
-        formData.email.trim().toLowerCase()
-    );
+      const response = await api.post("/auth/register", {
+        name: formData.fullName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim(),
+        password: formData.password,
+      });
 
-    if (userAlreadyExists) {
-      setError("An account already exists with this email.");
-      return;
+      console.log("Registration response:", response.data);
+
+      alert(
+        response.data.message ||
+          "Registration successful. Please login."
+      );
+
+      navigate("/login");
+    } catch (error) {
+      console.error("Registration error:", error);
+
+      setError(
+        error.response?.data?.message ||
+          "Registration failed. Please try again."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    const newUser = {
-      id: Date.now(),
-      fullName: formData.fullName.trim(),
-      email: formData.email.trim().toLowerCase(),
-      phone: formData.phone.trim(),
-      password: formData.password,
-      createdAt: new Date().toLocaleString(),
-    };
-
-    const updatedUsers = [...savedUsers, newUser];
-
-    localStorage.setItem(
-      "users",
-      JSON.stringify(updatedUsers)
-    );
-
-    alert("Registration successful. Please login.");
-
-    navigate("/login");
   }
 
   return (
@@ -130,6 +127,7 @@ function Register() {
               placeholder="Enter your full name"
               value={formData.fullName}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -145,6 +143,7 @@ function Register() {
               placeholder="example@gmail.com"
               value={formData.email}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -160,6 +159,7 @@ function Register() {
               placeholder="+94 77 123 4567"
               value={formData.phone}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -175,6 +175,7 @@ function Register() {
               placeholder="Minimum 6 characters"
               value={formData.password}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -190,6 +191,7 @@ function Register() {
               placeholder="Enter password again"
               value={formData.confirmPassword}
               onChange={handleChange}
+              disabled={loading}
             />
           </div>
 
@@ -198,8 +200,9 @@ function Register() {
               type="checkbox"
               checked={showPassword}
               onChange={() =>
-                setShowPassword(!showPassword)
+                setShowPassword((current) => !current)
               }
+              disabled={loading}
             />
 
             Show password
@@ -208,8 +211,9 @@ function Register() {
           <button
             type="submit"
             className="auth-submit-button"
+            disabled={loading}
           >
-            Create Account
+            {loading ? "Creating Account..." : "Create Account"}
           </button>
         </form>
 

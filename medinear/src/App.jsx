@@ -19,9 +19,7 @@ import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 
 function App() {
-  const loggedInUser = JSON.parse(
-  localStorage.getItem("loggedInUser") || "null"
-);
+  const token = localStorage.getItem("token");
 
   return (
     <BrowserRouter>
@@ -29,22 +27,14 @@ function App() {
         <Route
           path="/login"
           element={
-            loggedInUser ? (
-              <Navigate to="/" replace />
-            ) : (
-              <Login />
-            )
+            token ? <Navigate to="/" replace /> : <Login />
           }
         />
 
         <Route
           path="/register"
           element={
-            loggedInUser ? (
-              <Navigate to="/" replace />
-            ) : (
-              <Register />
-            )
+            token ? <Navigate to="/" replace /> : <Register />
           }
         />
 
@@ -66,7 +56,10 @@ function App() {
             element={<Profile />}
           />
 
-          <Route path="/cart" element={<Cart />} />
+          <Route
+            path="/cart"
+            element={<Cart />}
+          />
 
           <Route
             path="/checkout"

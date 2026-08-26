@@ -1,70 +1,323 @@
-import { useNavigate } from "react-router-dom";
-import BottomNav from "../components/BottomNav";
+import { useEffect, useState } from "react";
+import api from "../api/api";
 
 function Profile() {
-  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
-  const user =
-    JSON.parse(localStorage.getItem("loggedInUser")) ||
-    {};
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    address: "",
+  });
 
-  function handleLogout() {
-    const confirmed = window.confirm(
-      "Are you sure you want to logout?"
-    );
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-    if (!confirmed) {
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] =
+    useState("");
+
+  useEffect(() => {
+    async function fetchProfile() {
+      try {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          setError("Please login again.");
+          return;
+        }
+
+        const response = await api.get(
+          "/users/profile",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        const userData = response.data.user;
+
+        setUser(userData);
+
+        setFormData({
+          name: userData.name || "",
+          phone: userData.phone || "",
+          address: userData.address || "",
+        });
+      } catch (error) {
+        console.error("Profile error:", error);
+
+        setError(
+          error.response?.data?.message ||
+            "Unable to load profile."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchProfile();
+  }, []);
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setFormData((previousData) => ({
+      ...previousData,
+      [name]: value,
+    }));
+
+    setError("");
+    setSuccessMessage("");
+  }
+
+  async function handleUpdate(event) {
+    event.preventDefault();
+
+    if (!formData.name.trim()) {
+      setError("Name is required.");
       return;
     }
 
-    localStorage.removeItem("loggedInUser");
+    if (
+      formData.phone.trim() &&
+      formData.phone.trim().length < 9
+    ) {
+      setError("Please enter a valid phone number.");
+      return;
+    }
 
-    navigate("/login");
+    try {
+      setSaving(true);
+      setError("");
+      setSuccessMessage("");
+
+      const token = localStorage.getItem("token");
+
+      const response = await api.put(
+        "/users/profile",
+        {
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          address: formData.address.trim(),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const updatedUser = response.data.user;
+
+      setUser(updatedUser);
+
+      setFormData({
+        name: updatedUser.name || "",
+        phone: updatedUser.phone || "",
+        address: updatedUser.address || "",
+      });
+
+      const savedUser = JSON.parse(
+        localStorage.getItem("user") || "{}"
+      );
+
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          ...savedUser,
+          ...updatedUser,
+        })
+      );
+
+      setSuccessMessage(
+        response.data.message ||
+          "Profile updated successfully."
+      );
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Update profile error:", error);
+
+      setError(
+        error.response?.data?.message ||
+          "Unable to update profile."
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const firstLetter = user.fullName
-    ? user.fullName.charAt(0).toUpperCase()
-    : "U";
+  function handleCancel() {
+    setFormData({
+      name: user.name || "",
+      phone: user.phone || "",
+      address: user.address || "",
+    });
+
+    setError("");
+    setSuccessMessage("");
+    setIsEditing(false);
+  }
+
+  if (loading) {
+    return (
+      <div style={{ padding: "30px" }}>
+        Loading profile...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div style={{ padding: "30px" }}>
+        <p style={{ color: "red" }}>
+          {error || "User data not found."}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="page">
-      <header className="simple-header">
-        <h1>Profile</h1>
-        <p>Manage your account</p>
-      </header>
+    <div style={{ padding: "30px" }}>
+      <h1>My Profile</h1>
 
-      <div className="profile-card">
-        <div className="large-profile-circle">
-          {firstLetter}
+      {error && (
+        <p style={{ color: "red" }}>
+          {error}
+        </p>
+      )}
+
+      {successMessage && (
+        <p style={{ color: "green" }}>
+          {successMessage}
+        </p>
+      )}
+
+      {!isEditing ? (
+        <div>
+          <p>
+            <strong>Name:</strong> {user.name}
+          </p>
+
+          <p>
+            <strong>Email:</strong> {user.email}
+          </p>
+
+          <p>
+            <strong>Phone:</strong>{" "}
+            {user.phone || "Not added"}
+          </p>
+
+          <p>
+            <strong>Address:</strong>{" "}
+            {user.address || "Not added"}
+          </p>
+
+          <p>
+            <strong>Role:</strong> {user.role}
+          </p>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsEditing(true);
+              setError("");
+              setSuccessMessage("");
+            }}
+          >
+            Edit Profile
+          </button>
         </div>
+      ) : (
+        <form onSubmit={handleUpdate}>
+          <div style={{ marginBottom: "15px" }}>
+            <label htmlFor="profileName">
+              Name
+            </label>
 
-        <h2>{user.fullName || "User"}</h2>
+            <br />
 
-        <p>{user.email || "No email"}</p>
+            <input
+              id="profileName"
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              disabled={saving}
+            />
+          </div>
 
-        <p>{user.phone || "No phone number"}</p>
+          <div style={{ marginBottom: "15px" }}>
+            <label htmlFor="profileEmail">
+              Email
+            </label>
 
-        <button className="primary-button">
-          Edit Profile
-        </button>
-      </div>
+            <br />
 
-      <div className="menu-list">
-        <button>My Prescriptions</button>
-        <button>Saved Addresses</button>
-        <button>Payment Methods</button>
-        <button>Notifications</button>
-        <button>Help and Support</button>
+            <input
+              id="profileEmail"
+              type="email"
+              value={user.email}
+              disabled
+            />
+          </div>
 
-        <button
-          className="logout-button"
-          onClick={handleLogout}
-        >
-          Logout
-        </button>
-      </div>
+          <div style={{ marginBottom: "15px" }}>
+            <label htmlFor="profilePhone">
+              Phone
+            </label>
 
-      <BottomNav />
+            <br />
+
+            <input
+              id="profilePhone"
+              type="tel"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              disabled={saving}
+            />
+          </div>
+
+          <div style={{ marginBottom: "15px" }}>
+            <label htmlFor="profileAddress">
+              Address
+            </label>
+
+            <br />
+
+            <textarea
+              id="profileAddress"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              disabled={saving}
+              rows="4"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+          >
+            {saving
+              ? "Saving..."
+              : "Save Changes"}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCancel}
+            disabled={saving}
+            style={{ marginLeft: "10px" }}
+          >
+            Cancel
+          </button>
+        </form>
+      )}
     </div>
   );
 }

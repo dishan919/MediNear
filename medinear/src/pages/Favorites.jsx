@@ -1,31 +1,70 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import api from "../api/api";
 import BottomNav from "../components/BottomNav";
 
 function Favorites() {
   const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const savedFavorites =
-      JSON.parse(localStorage.getItem("favorites")) || [];
+    async function fetchFavorites() {
+      try {
+        const token = localStorage.getItem("token");
 
-    setFavorites(savedFavorites);
+        const response = await api.get(
+          "/users/favorites",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        setFavorites(response.data.favorites || []);
+      } catch (error) {
+        console.error("Favorites error:", error);
+
+        setError(
+          error.response?.data?.message ||
+            "Unable to load favorites."
+        );
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchFavorites();
   }, []);
 
-  function removeFavorite(pharmacyId) {
-    const updatedFavorites = favorites.filter(
-      (pharmacy) => pharmacy.id !== pharmacyId
-    );
+  async function removeFavorite(pharmacyId) {
+    try {
+      const token = localStorage.getItem("token");
 
-    setFavorites(updatedFavorites);
+      await api.delete(
+        `/users/favorites/${pharmacyId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    localStorage.setItem(
-      "favorites",
-      JSON.stringify(updatedFavorites)
-    );
+      setFavorites((currentFavorites) =>
+        currentFavorites.filter(
+          (pharmacy) => pharmacy._id !== pharmacyId
+        )
+      );
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Unable to remove favorite."
+      );
+    }
   }
 
-  function clearAllFavorites() {
+  async function clearAllFavorites() {
     const confirmed = window.confirm(
       "Are you sure you want to remove all favorites?"
     );
@@ -34,8 +73,31 @@ function Favorites() {
       return;
     }
 
-    setFavorites([]);
-    localStorage.removeItem("favorites");
+    try {
+      const token = localStorage.getItem("token");
+
+      await api.delete("/users/favorites", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setFavorites([]);
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Unable to clear favorites."
+      );
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="page">
+        <p>Loading favorites...</p>
+        <BottomNav />
+      </div>
+    );
   }
 
   return (
@@ -48,6 +110,7 @@ function Favorites() {
 
         {favorites.length > 0 && (
           <button
+            type="button"
             className="clear-button"
             onClick={clearAllFavorites}
           >
@@ -56,6 +119,10 @@ function Favorites() {
         )}
       </header>
 
+      {error && (
+        <p style={{ color: "red" }}>{error}</p>
+      )}
+
       {favorites.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">♡</div>
@@ -63,7 +130,8 @@ function Favorites() {
           <h2>No favorites yet</h2>
 
           <p>
-            Add pharmacies from the home page to see them here.
+            Add pharmacies from the home page to see them
+            here.
           </p>
 
           <Link to="/" className="primary-link-button">
@@ -73,30 +141,38 @@ function Favorites() {
       ) : (
         <div className="pharmacy-list">
           {favorites.map((pharmacy) => (
-            <div className="pharmacy-card" key={pharmacy.id}>
+            <div
+              className="pharmacy-card"
+              key={pharmacy._id}
+            >
               <div className="pharmacy-icon">+</div>
 
               <div className="pharmacy-info">
                 <h3>{pharmacy.name}</h3>
-                <p>{pharmacy.distance} away</p>
-                <p>⭐ {pharmacy.rating}</p>
+
+                <p>📍 {pharmacy.address}</p>
+
+                <p>District: {pharmacy.district}</p>
+
+                <p>📞 {pharmacy.phone}</p>
 
                 <span
                   className={
-                    pharmacy.status === "Open"
+                    pharmacy.isOpen
                       ? "status open"
                       : "status closed"
                   }
                 >
-                  {pharmacy.status}
+                  {pharmacy.isOpen ? "Open" : "Closed"}
                 </span>
               </div>
 
               <div className="card-actions">
                 <button
+                  type="button"
                   className="remove-button"
                   onClick={() =>
-                    removeFavorite(pharmacy.id)
+                    removeFavorite(pharmacy._id)
                   }
                 >
                   Remove
@@ -104,7 +180,7 @@ function Favorites() {
 
                 <Link
                   className="view-button"
-                  to={`/pharmacy/${pharmacy.id}`}
+                  to={`/pharmacy/${pharmacy._id}`}
                 >
                   View
                 </Link>

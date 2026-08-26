@@ -16,9 +16,9 @@ function generateToken(userId) {
 
 async function registerUser(req, res) {
   try {
-    const { fullName, email, phone, password } = req.body;
+    const { name, email, phone, password } = req.body;
 
-    if (!fullName || !email || !phone || !password) {
+    if (!name || !email || !phone || !password) {
       return res.status(400).json({
         success: false,
         message: "All fields are required",
@@ -53,7 +53,7 @@ async function registerUser(req, res) {
     );
 
     const user = await User.create({
-      fullName: fullName.trim(),
+      name: name.trim(),
       email: normalizedEmail,
       phone: phone.trim(),
       password: hashedPassword,
@@ -63,6 +63,7 @@ async function registerUser(req, res) {
 
     return res.status(201).json({
       success: true,
+      name: user.name,
       message: "User registered successfully",
       token,
       user: {
@@ -79,6 +80,7 @@ async function registerUser(req, res) {
     return res.status(500).json({
       success: false,
       message: "Server error while registering user",
+       error: error.message,
     });
   }
 }

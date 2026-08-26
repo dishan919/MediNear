@@ -1,67 +1,52 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../api/api";
 
 function Login() {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  function handleChange(event) {
-    const { name, value } = event.target;
-
-    setFormData((previousData) => ({
-      ...previousData,
-      [name]: value,
-    }));
-
-    setError("");
-  }
-
-  function handleLogin(event) {
+  async function handleLogin(event) {
     event.preventDefault();
 
-    if (
-      !formData.email.trim() ||
-      !formData.password
-    ) {
-      setError("Please enter your email and password.");
+    if (!email.trim() || !password) {
+      setError("Please enter email and password.");
       return;
     }
 
-    const savedUsers =
-      JSON.parse(localStorage.getItem("users")) || [];
+    try {
+      setLoading(true);
+      setError("");
 
-    const matchedUser = savedUsers.find(
-      (user) =>
-        user.email.toLowerCase() ===
-          formData.email.trim().toLowerCase() &&
-        user.password === formData.password
-    );
+      const response = await api.post("/auth/login", {
+        email: email.trim().toLowerCase(),
+        password,
+      });
+       console.log("Login response:", response.data);
+       console.log("Token:", response.data.token);
+      localStorage.setItem("token", response.data.token);
 
-    if (!matchedUser) {
-      setError("Invalid email or password.");
-      return;
+      localStorage.setItem(
+        "user",
+        JSON.stringify(response.data.user)
+      );
+
+      alert("Login successful");
+
+      navigate("/");
+    } catch (error) {
+      setError(
+        error.response?.data?.message ||
+          "Invalid email or password."
+      );
+    } finally {
+      setLoading(false);
     }
-
-    const loggedInUser = {
-      id: matchedUser.id,
-      fullName: matchedUser.fullName,
-      email: matchedUser.email,
-      phone: matchedUser.phone,
-    };
-
-    localStorage.setItem(
-      "loggedInUser",
-      JSON.stringify(loggedInUser)
-    );
-
-    navigate("/");
   }
 
   return (
@@ -72,7 +57,7 @@ function Login() {
         <h1>Welcome Back</h1>
 
         <p className="auth-description">
-          Login to continue to MediNear.
+          Login to find nearby pharmacies.
         </p>
 
         {error && (
@@ -88,10 +73,13 @@ function Login() {
             <input
               id="loginEmail"
               type="email"
-              name="email"
               placeholder="example@gmail.com"
-              value={formData.email}
-              onChange={handleChange}
+              value={email}
+              onChange={(event) => {
+                setEmail(event.target.value);
+                setError("");
+              }}
+              disabled={loading}
             />
           </div>
 
@@ -103,44 +91,35 @@ function Login() {
             <input
               id="loginPassword"
               type={showPassword ? "text" : "password"}
-              name="password"
               placeholder="Enter your password"
-              value={formData.password}
-              onChange={handleChange}
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError("");
+              }}
+              disabled={loading}
             />
           </div>
 
-          <div className="login-options">
-            <label className="show-password-option">
-              <input
-                type="checkbox"
-                checked={showPassword}
-                onChange={() =>
-                  setShowPassword(!showPassword)
-                }
-              />
-
-              Show password
-            </label>
-
-            <button
-              type="button"
-              className="forgot-password-button"
-              onClick={() =>
-                alert(
-                  "Forgot password will be added later."
-                )
+          <label className="show-password-option">
+            <input
+              type="checkbox"
+              checked={showPassword}
+              onChange={() =>
+                setShowPassword((current) => !current)
               }
-            >
-              Forgot password?
-            </button>
-          </div>
+              disabled={loading}
+            />
+
+            Show password
+          </label>
 
           <button
             type="submit"
             className="auth-submit-button"
+            disabled={loading}
           >
-            Login
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
 
