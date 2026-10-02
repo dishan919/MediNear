@@ -6,6 +6,8 @@ import {
 } from "react-router-dom";
 
 import ProtectedRoute from "./components/ProtectedRoute";
+import GuestRoute from "./components/GuestRoute";
+import { AuthProvider } from "./auth/AuthProvider";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -18,73 +20,70 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/orderSuccess";
 
-function GuestRoute({ children }) {
-  const token = localStorage.getItem("token");
-  return token ? <Navigate to="/" replace /> : children;
-}
-
 function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            <GuestRoute><Login /></GuestRoute>
-          }
-        />
-
-        <Route
-          path="/register"
-          element={
-            <GuestRoute><Register /></GuestRoute>
-          }
-        />
-
-        <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Home />} />
-
+      <AuthProvider>
+        <Routes>
           <Route
-            path="/favorites"
-            element={<Favorites />}
+            path="/login"
+            element={
+              <GuestRoute><Login /></GuestRoute>
+            }
           />
 
           <Route
-            path="/orders"
-            element={<Orders />}
+            path="/register"
+            element={
+              <GuestRoute><Register /></GuestRoute>
+            }
           />
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Home />} />
+
+            <Route
+              path="/favorites"
+              element={<Favorites />}
+            />
+
+            <Route
+              path="/orders"
+              element={<Orders />}
+            />
+
+            <Route
+              path="/profile"
+              element={<Profile />}
+            />
+
+            <Route
+              path="/cart"
+              element={<Cart />}
+            />
+
+            <Route
+              path="/checkout"
+              element={<Checkout />}
+            />
+
+            <Route
+              path="/pharmacy/:id"
+              element={<PharmacyDetails />}
+            />
+
+            <Route
+              path="/order-success/:orderId"
+              element={<OrderSuccess />}
+            />
+          </Route>
 
           <Route
-            path="/profile"
-            element={<Profile />}
+            path="*"
+            element={<Navigate to="/" replace />}
           />
-
-          <Route
-            path="/cart"
-            element={<Cart />}
-          />
-
-          <Route
-            path="/checkout"
-            element={<Checkout />}
-          />
-
-          <Route
-            path="/pharmacy/:id"
-            element={<PharmacyDetails />}
-          />
-
-          <Route
-            path="/order-success/:orderId"
-            element={<OrderSuccess />}
-          />
-        </Route>
-
-        <Route
-          path="*"
-          element={<Navigate to="/" replace />}
-        />
-      </Routes>
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

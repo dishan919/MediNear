@@ -1,4 +1,4 @@
-﻿import test from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "vite";
 import { createElement } from "react";
@@ -7,11 +7,13 @@ import { MemoryRouter } from "react-router-dom";
 
 // Render the actual pages with the project's Vite/React setup, without a browser or API writes.
 test("auth pages render the expected fields and reciprocal route links", async () => {
-  const server = await createServer({ server: { middlewareMode: true }, appType: "custom" });
+  const server = await createServer({ server: { middlewareMode: true, hmr: false, ws: false }, appType: "custom" });
   try {
+    const { AuthContext } = await server.ssrLoadModule("/src/auth/AuthContext.jsx");
     for (const [page, path, target, count] of [["Login", "/login", "/register", 2], ["Register", "/register", "/login", 5]]) {
       const { default: Component } = await server.ssrLoadModule(`/src/pages/${page}.jsx`);
-      const markup = renderToString(createElement(MemoryRouter, { initialEntries: [path] }, createElement(Component)));
+      const markup = renderToString(createElement(AuthContext.Provider, { value: { user: null, login() {} } },
+        createElement(MemoryRouter, { initialEntries: [path] }, createElement(Component))));
       assert.ok(markup.includes(`href="${target}"`));
       assert.equal((markup.match(/<input /g) || []).length, count);
       assert.ok(markup.includes("MediNear"));

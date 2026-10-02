@@ -4,8 +4,10 @@ import api from "../api/api";
 import AuthLayout from "../components/AuthLayout";
 import AuthField from "../components/AuthField";
 import { validateLogin } from "../utils/authValidation";
+import { useAuth } from "../auth/AuthContext";
 
 function Login() {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -39,8 +41,7 @@ function Login() {
       if (!response.data.success || !response.data.token || !response.data.user) {
         throw new Error("Invalid authentication response");
       }
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("token", response.data.token);
+      login(response.data);
       navigate("/", { replace: true });
     } catch (requestError) {
       setErrors(requestError.response?.data?.errors || {});

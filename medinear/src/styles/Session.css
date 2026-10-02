@@ -1,0 +1,53 @@
+.session-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 30px;
+  background: #ffffff;
+  border-bottom: 1px solid #dcebe3;
+}
+
+.session-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 1px solid #a7d9c3;
+  border-radius: 10px;
+  background: #ecfdf5;
+  color: #065f46;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.session-logout:hover {
+  background: #047857;
+  border-color: #047857;
+  color: #ffffff;
+}
+
+.session-logout:active {
+  background: #065f46;
+  border-color: #065f46;
+  color: #ffffff;
+}
+
+.session-logout:focus-visible {
+  outline: 3px solid #059669;
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .session-toolbar {
+    padding: 10px 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-logout {
+    transition: none;
+  }
+}
