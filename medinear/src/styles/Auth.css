@@ -1,0 +1,27 @@
+.auth-page { min-height: 100dvh; padding: 40px 20px; background: linear-gradient(135deg, #ecfdf5, #f8fafc); }
+.auth-page .auth-card { max-width: 480px; padding: 32px; border-color: #dcebe3; box-shadow: 0 16px 45px rgba(6, 78, 59, .08); }
+.auth-brand { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 26px; color: #064e3b; font-size: 23px; font-weight: bold; }
+.auth-brand .auth-logo { width: 44px; height: 44px; margin: 0; font-size: 32px; border-radius: 12px; background: #059669; }
+.auth-card h1 { font-size: 28px; color: #0f3326; }
+.auth-card .form-group { margin-bottom: 18px; }
+.auth-card .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; }
+.auth-card .form-group input { width: 100%; min-width: 0; min-height: 48px; background: white; border: 1px solid #cbd5d1; border-radius: 10px; padding: 12px 14px; }
+.auth-card .form-group input:focus { border-color: #059669; outline: 3px solid #d1fae5; }
+.auth-card .form-group input[aria-invalid="true"] { border-color: #b91c1c; }
+.auth-password { position: relative; }
+.auth-card .auth-password input { padding-right: 76px; }
+.auth-password-toggle { position: absolute; right: 8px; top: 4px; min-height: 40px; padding: 0 10px; color: #047857; background: transparent; border: 0; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
+.auth-password-toggle:hover { background: #ecfdf5; }
+.auth-field-error, .auth-field-hint { font-size: 13px; line-height: 1.5; margin-top: 6px; }
+.auth-field-error { color: #b91c1c; }
+.auth-field-hint { color: #64746c; }
+.auth-card .auth-submit-button { margin-top: 6px; background: #059669; min-height: 48px; }
+.auth-card .auth-submit-button:hover { background: #047857; }
+.auth-card button:disabled { cursor: wait; opacity: .65; }
+.auth-card a { color: #047857; }
+.auth-card a:hover { text-decoration: underline; }
+.auth-card a:focus-visible, .auth-card button:focus-visible { outline: 3px solid #059669; outline-offset: 3px; }
+.auth-forgot-link { display: block; width: fit-content; margin: 0 0 20px auto; font-size: 14px; }
+.auth-notice { padding: 12px 14px; margin-bottom: 20px; border-radius: 10px; background: #ecfdf5; color: #065f46; line-height: 1.5; font-size: 14px; }
+.auth-card .error-message { overflow-wrap: anywhere; }
+@media (max-width: 480px) { .auth-page { padding: 24px 14px; } .auth-page .auth-card { padding: 24px 20px; } .auth-card h1 { font-size: 25px; } }

@@ -16,25 +16,28 @@ import Profile from "./pages/Profile";
 import PharmacyDetails from "./pages/PharmacyDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
-import OrderSuccess from "./pages/OrderSuccess";
+import OrderSuccess from "./pages/orderSuccess";
+
+function GuestRoute({ children }) {
+  const token = localStorage.getItem("token");
+  return token ? <Navigate to="/" replace /> : children;
+}
 
 function App() {
-  const token = localStorage.getItem("token");
-
   return (
     <BrowserRouter>
       <Routes>
         <Route
           path="/login"
           element={
-            token ? <Navigate to="/" replace /> : <Login />
+            <GuestRoute><Login /></GuestRoute>
           }
         />
 
         <Route
           path="/register"
           element={
-            token ? <Navigate to="/" replace /> : <Register />
+            <GuestRoute><Register /></GuestRoute>
           }
         />
 

@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { validateAuth } = require("../utils/authValidation");
 
 function generateToken(userId) {
   return jwt.sign(
@@ -16,21 +17,15 @@ function generateToken(userId) {
 
 async function registerUser(req, res) {
   try {
+    const errors = validateAuth(req.body, true);
+    if (Object.keys(errors).length) {
+      return res.status(400).json({
+        success: false,
+        message: "Please correct the highlighted fields.",
+        errors,
+      });
+    }
     const { name, email, phone, password } = req.body;
-
-    if (!name || !email || !phone || !password) {
-      return res.status(400).json({
-        success: false,
-        message: "All fields are required",
-      });
-    }
-
-    if (password.length < 6) {
-      return res.status(400).json({
-        success: false,
-        message: "Password must contain at least 6 characters",
-      });
-    }
 
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -42,6 +37,7 @@ async function registerUser(req, res) {
       return res.status(409).json({
         success: false,
         message: "An account already exists with this email",
+        errors: { email: "An account already exists with this email." },
       });
     }
 
@@ -68,33 +64,39 @@ async function registerUser(req, res) {
       token,
       user: {
         id: user._id,
-        fullName: user.fullName,
+        name: user.name,
+        fullName: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
       },
     });
   } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ success: false,
+        message: "An account already exists with this email",
+        errors: { email: "An account already exists with this email." } });
+    }
     console.error("Register error:", error);
 
     return res.status(500).json({
       success: false,
       message: "Server error while registering user",
-       error: error.message,
     });
   }
 }
 
 async function loginUser(req, res) {
   try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+    const errors = validateAuth(req.body);
+    if (Object.keys(errors).length) {
       return res.status(400).json({
         success: false,
-        message: "Email and password are required",
+        message: "Please correct the highlighted fields.",
+        errors,
       });
     }
+    const { email, password } = req.body;
 
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -129,7 +131,8 @@ async function loginUser(req, res) {
       token,
       user: {
         id: user._id,
-        fullName: user.fullName,
+        name: user.name,
+        fullName: user.name,
         email: user.email,
         phone: user.phone,
         role: user.role,
@@ -150,7 +153,8 @@ async function getProfile(req, res) {
       success: true,
       user: {
         id: req.user._id,
-        fullName: req.user.fullName,
+        name: req.user.name,
+        fullName: req.user.name,
         email: req.user.email,
         phone: req.user.phone,
         role: req.user.role,
