@@ -193,4 +193,6 @@
     align-items: flex-start;
     flex-direction: column;
   }
-}
+}.results-map { margin: 28px auto; padding: 24px; max-width: 1200px; background: white; border-radius: 16px; }
+.results-map h2, .results-map p { margin-bottom: 16px; }
+.home-page .search-container { display: block; margin: 16px 0; }

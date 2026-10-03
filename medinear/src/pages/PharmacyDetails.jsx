@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import api from "../api/api";
 import { Link, useParams } from "react-router-dom";
 
-function PharmacyDetails() {
+function DemoPharmacyDetails() {
   const { id } = useParams();
 
   const pharmacies = [
@@ -325,4 +326,25 @@ function PharmacyDetails() {
   );
 }
 
-export default PharmacyDetails;
+function LivePharmacyDetails({ id }) {
+  const [pharmacy, setPharmacy] = useState(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    const controller = new AbortController();
+    api.get(`/pharmacies/${id}`, { signal: controller.signal }).then(response => setPharmacy(response.data.pharmacy)).catch(e => { if (!controller.signal.aborted) setError(e.response?.data?.message || "Unable to load pharmacy"); });
+    return () => controller.abort();
+  }, [id]);
+  return <main className="page"><Link to="/">Back to pharmacies</Link>
+    {error ? <p role="alert">{error}</p> : !pharmacy ? <p role="status">Loading pharmacy...</p> : <>
+      <h1>{pharmacy.name}</h1><p>{pharmacy.openStatus} ? {pharmacy.hoursToday} ({pharmacy.timezone})</p>
+      <p>{pharmacy.address}, {pharmacy.district}</p><a href={`tel:${pharmacy.phone}`}>Call pharmacy</a>
+      <p><a target="_blank" rel="noreferrer" href={`https://www.google.com/maps/search/?api=1&query=${pharmacy.latitude},${pharmacy.longitude}`}>Directions</a></p>
+      <h2>Medicine availability</h2><p>Availability reflects the latest owner update.</p>
+      {pharmacy.medicines.length ? pharmacy.medicines.map(m => <article className="medicine-card" key={m._id}><div><h3>{m.name}</h3><p>{m.genericName} {m.brand}</p><p>{m.availability}{m.price !== undefined ? ` ? LKR ${m.price}` : ""}</p><p>Updated: {new Date(m.updatedAt).toLocaleString()}</p></div></article>) : <p>No medicines listed.</p>}
+    </>}
+  </main>;
+}
+export default function PharmacyDetails() {
+  const { id } = useParams();
+  return /^[a-f0-9]{24}$/i.test(id) ? <LivePharmacyDetails key={id} id={id} /> : <DemoPharmacyDetails />;
+}

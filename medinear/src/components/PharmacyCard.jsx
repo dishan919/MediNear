@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api/api";
 import "../styles/PharmacyCard.css";
 
@@ -6,6 +7,8 @@ function PharmacyCard({
   pharmacy,
   initiallyFavorite = false,
   onFavoriteChange,
+  onViewMap,
+  selected,
 }) {
   const {
     _id,
@@ -96,7 +99,7 @@ function PharmacyCard({
   }
 
   return (
-    <article className="pharmacy-card">
+    <article className="pharmacy-card" style={selected ? { outline: "3px solid #047857" } : undefined}>
       <div className="pharmacy-image-container">
         {image ? (
           <img
@@ -120,7 +123,7 @@ function PharmacyCard({
               : "status-closed"
           }`}
         >
-          {isOpen ? "Open" : "Closed"}
+          {pharmacy.openStatus || (isOpen === null ? "Hours unavailable" : isOpen ? "Open" : "Closed")}
         </span>
 
         <button
@@ -140,6 +143,7 @@ function PharmacyCard({
 
       <div className="pharmacy-content">
         <h2 className="pharmacy-name">{name}</h2>
+        <Link to={`/pharmacy/${_id}`}>View medicines and pharmacy details</Link>
 
         <p className="pharmacy-address">
           📍 {address}
@@ -154,11 +158,13 @@ function PharmacyCard({
         </p>
 
         <p className="pharmacy-hours">
-          {open24Hours
-            ? "🕒 Open 24 hours"
-            : "🕒 Regular opening hours"}
+          {open24Hours ? "Open 24 hours" : pharmacy.hoursToday || "Hours unavailable"} ({pharmacy.timezone || "Asia/Colombo"})
         </p>
 
+        {pharmacy.medicines?.map(m => <p key={m._id}>{m.name}: {m.availability}{m.price !== undefined ? ` ? LKR ${m.price}` : ""}</p>)}
+        <p>{pharmacy.distance == null ? "Distance unavailable" : `${pharmacy.distance.toFixed(1)} km`}</p>
+        {pharmacy.rankingReason && <p>{pharmacy.rank}. {pharmacy.rankingReason}</p>}
+        {onViewMap && <button type="button" className="direction-button" onClick={() => onViewMap(_id)}>View on Map</button>}
         <div className="pharmacy-actions">
           <button
             type="button"

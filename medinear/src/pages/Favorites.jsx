@@ -163,7 +163,7 @@ function Favorites() {
                       : "status closed"
                   }
                 >
-                  {pharmacy.isOpen ? "Open" : "Closed"}
+                  {pharmacy.openStatus || "Hours unavailable"}
                 </span>
               </div>
 

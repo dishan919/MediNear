@@ -6,6 +6,7 @@ import {
 } from "react";
 
 import api from "../api/api";
+import PharmacyMap from "../components/PharmacyMap";
 import PharmacyCard from "../components/PharmacyCard";
 import "../styles/Home.css";
 
@@ -13,6 +14,23 @@ function Home() {
   const [pharmacies, setPharmacies] = useState([]);
   const [favoriteIds, setFavoriteIds] = useState([]);
 
+  const [medicineSearch, setMedicineSearch] = useState("");
+  const [emergency, setEmergency] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [locationMessage, setLocationMessage] = useState("Use your location to calculate distance.");
+  const [selectedId, setSelectedId] = useState("");
+  const selectPharmacy = useCallback(id => {
+    setSelectedId(id);
+    document.getElementById("pharmacy-map")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+  function locate() {
+    if (!navigator.geolocation) { setLocationMessage("Location unavailable. You can still search pharmacies."); return; }
+    setLocationMessage("Finding your location...");
+    navigator.geolocation.getCurrentPosition(position => {
+      setLocation({ lat: position.coords.latitude, lng: position.coords.longitude });
+      setLocationMessage("Distances are straight-line estimates from your current location.");
+    }, () => { setLocation(null); setLocationMessage("Location denied or unavailable. Results still work without distance."); }, { timeout: 10000, maximumAge: 60000 });
+  }
   const [searchText, setSearchText] = useState("");
   const [showOpenOnly, setShowOpenOnly] =
     useState(false);
@@ -23,18 +41,22 @@ function Home() {
   const [error, setError] = useState("");
 
   // Fetch all pharmacies from backend
-  const fetchPharmacies = useCallback(async () => {
+  const fetchPharmacies = useCallback(async (signal) => {
     try {
       setLoading(true);
       setError("");
 
-      const response = await api.get("/pharmacies");
+      const response = await api.get("/pharmacies/search", { params: {
+        medicine: medicineSearch, openNow: showOpenOnly, hour24: show24HoursOnly, emergency,
+        ...(location ? { lat: location.lat, lng: location.lng } : {}),
+      }, signal });
 
       const pharmacyList =
         response.data.pharmacies || [];
 
       setPharmacies(pharmacyList);
     } catch (requestError) {
+      if (signal?.aborted) return;
       console.error(
         "Pharmacy fetch error:",
         requestError
@@ -45,9 +67,9 @@ function Home() {
           "Unable to load pharmacies. Please try again."
       );
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
-  }, []);
+  }, [medicineSearch, showOpenOnly, show24HoursOnly, emergency, location]);
 
   // Fetch logged-in user's favorites
   const fetchFavoriteIds = useCallback(async () => {
@@ -88,9 +110,11 @@ function Home() {
 
   // Load pharmacies and favorites when page opens
   useEffect(() => {
-    fetchPharmacies();
-    fetchFavoriteIds();
-  }, [fetchPharmacies, fetchFavoriteIds]);
+    const controller = new AbortController();
+    const timer = setTimeout(() => fetchPharmacies(controller.signal), 250);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [fetchPharmacies]);
+  useEffect(() => { fetchFavoriteIds(); }, [fetchFavoriteIds]);
 
   // Update favorite IDs when heart button is clicked
   function handleFavoriteChange(
@@ -180,7 +204,13 @@ function Home() {
             />
           </div>
 
+          <label className="search-container">Medicine search
+            <input type="search" className="search-input" placeholder="Search medicine..." maxLength={120} value={medicineSearch} onChange={event => setMedicineSearch(event.target.value)} />
+          </label>
+          <button type="button" className="retry-button" onClick={locate}>Use current location</button>
+          <p role="status">{locationMessage}</p>
           <div className="filter-container">
+            <label className="filter-option"><input type="checkbox" checked={emergency} onChange={event => setEmergency(event.target.checked)} />Emergency / 24-Hour</label>
             <label className="filter-option">
               <input
                 type="checkbox"
@@ -268,6 +298,8 @@ function Home() {
                 className="clear-button"
                 onClick={() => {
                   setSearchText("");
+                  setMedicineSearch("");
+                  setEmergency(false);
                   setShowOpenOnly(false);
                   setShow24HoursOnly(false);
                 }}
@@ -286,6 +318,8 @@ function Home() {
                   <PharmacyCard
                     key={pharmacy._id}
                     pharmacy={pharmacy}
+                    onViewMap={selectPharmacy}
+                    selected={selectedId === pharmacy._id}
                     initiallyFavorite={favoriteIds.includes(
                       pharmacy._id
                     )}
@@ -298,6 +332,7 @@ function Home() {
             </div>
           )}
       </section>
+      <PharmacyMap pharmacies={filteredPharmacies} location={location} selectedId={selectedId} onSelect={selectPharmacy} />
     </main>
   );
 }
