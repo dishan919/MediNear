@@ -8,6 +8,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const User = require("../../models/User");
+const Pharmacy = require("../../models/Pharmacy");
 const authRoutes = require("../../routes/authRoutes");
 const pharmacyRoutes = require("../../routes/pharmacyRoutes");
 const hashPassword = require("../../utils/hashPassword");
@@ -19,6 +20,7 @@ test("real MongoDB registration, login, sessions, authorization and development 
   process.env.JWT_SECRET ||= randomUUID();
   let server;
   const insertedIds = [];
+  const insertedPharmacies = [];
   try {
     await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
     const app = express();
@@ -68,6 +70,29 @@ test("real MongoDB registration, login, sessions, authorization and development 
       assert.equal((await request(`/pharmacies/${missingPharmacy}`, {}, loggedIn.data.token, "PUT")).status, role === "customer" ? 403 : 404);
       assert.equal((await request(`/pharmacies/${missingPharmacy}`, undefined, loggedIn.data.token, "DELETE")).status, role === "customer" ? 403 : 404);
       assert.equal((await request("/auth/login", { email: account.email, password: "wrong" })).status, 401);
+      if (role === "pharmacy_owner") {
+        const created = await request("/pharmacies", { name: `Integration pharmacy ${suffix}`, address: "Colombo", district: "Colombo", phone: "0111234567", latitude: 6.9271, longitude: 79.8612 }, loggedIn.data.token);
+        assert.equal(created.status, 201);
+        const pharmacyId = created.data.pharmacy._id;
+        insertedPharmacies.push(pharmacyId);
+        const base = `/pharmacies/${pharmacyId}`;
+        const medicineName = `Integration medicine ${suffix}`;
+        const added = await request(`${base}/inventory`, { name: medicineName, quantity: 25, price: 120, imageUrl: 'https://images.example.test/medicine.png' }, loggedIn.data.token);
+        assert.equal(added.status, 201);
+        const medicineId = added.data.inventory[0]._id;
+        const detail = (await request(base)).data.pharmacy;
+        assert.equal(detail.medicines[0].quantity, 25);
+        assert.equal(detail.medicines[0].price, 120);
+        assert.equal(detail.medicines[0].imageUrl, 'https://images.example.test/medicine.png');
+        assert.equal((await Pharmacy.findById(pharmacyId)).inventory[0].imageUrl, detail.medicines[0].imageUrl);
+        const hours = Array.from({ length: 7 }, (_, day) => ({ day, closed: false, allDay: true }));
+        assert.equal((await request(`${base}/hours`, { openingHours: hours, timezone: "Asia/Colombo" }, loggedIn.data.token, "PUT")).status, 200);
+        assert.equal((await request(`/pharmacies/search?medicine=${encodeURIComponent(medicineName.toUpperCase())}&emergency=true`)).data.pharmacies.length, 1);
+        assert.equal((await request(`${base}/inventory/${medicineId}`, { quantity: 0 }, loggedIn.data.token, "PATCH")).status, 200);
+        assert.equal((await request(`/pharmacies/search?medicine=${encodeURIComponent(medicineName)}`)).data.pharmacies.length, 0);
+        assert.equal((await request(`${base}/inventory/${medicineId}`, undefined, loggedIn.data.token, "DELETE")).status, 200);
+        assert.equal((await Pharmacy.findById(pharmacyId)).inventory.length, 0);
+      }
     }
     assert.equal((await request("/auth/profile")).status, 401);
     assert.equal((await request("/pharmacies", {})).status, 401);
@@ -100,6 +125,9 @@ test("real MongoDB registration, login, sessions, authorization and development 
     console.log(`Verified database ${mongoose.connection.name}, collection ${User.collection.name}; temporary integration users will be removed.`);
   } finally {
     if (server) await new Promise((resolve) => server.close(resolve));
+    if (insertedPharmacies.length && mongoose.connection.readyState === 1) {
+      await Pharmacy.deleteMany({ _id: { $in: insertedPharmacies } });
+    }
     if (insertedIds.length && mongoose.connection.readyState === 1) {
       await User.collection.deleteMany({ _id: { $in: insertedIds.map((id) => new mongoose.Types.ObjectId(id)) } });
     }

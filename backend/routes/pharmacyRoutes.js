@@ -10,6 +10,15 @@ const {
 
 const router = express.Router();
 const { protect, requireRole } = require("../middleware/authMiddleware");
+const features = require("../controllers/pharmacyController");
+const owner = [protect, requireRole("pharmacy_owner")];
+router.get("/search", features.searchPharmacies);
+router.get("/mine", ...owner, features.getOwnedPharmacies);
+router.put("/:id/hours", ...owner, features.updateHours);
+router.get("/:id/inventory", ...owner, features.inventory);
+router.post("/:id/inventory", ...owner, features.inventory);
+router.patch("/:id/inventory/:medicineId", ...owner, features.inventory);
+router.delete("/:id/inventory/:medicineId", ...owner, features.inventory);
 
 router.get("/", getAllPharmacies);
 

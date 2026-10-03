@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Pharmacy = require("../models/Pharmacy");
 const { getUserRole } = require("../utils/roles");
+const { publicPharmacy } = require("../services/ranking");
 
 // GET /api/users/profile
 // Get currently logged-in user's profile
@@ -101,7 +102,7 @@ const getFavorites = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      favorites: user.favorites || [],
+      favorites: (user.favorites || []).filter(Boolean).map(p => publicPharmacy(p)),
     });
   } catch (error) {
     console.error("Get favorites error:", error);
@@ -144,7 +145,7 @@ const addFavorite = async (req, res) => {
       message: alreadyFavorite
         ? "Pharmacy already in favorites"
         : "Pharmacy added to favorites",
-      favorites: user.favorites,
+      favorites: user.favorites.filter(Boolean).map(p => publicPharmacy(p)),
     });
   } catch (error) {
     console.error("Add favorite error:", error);
@@ -175,7 +176,7 @@ const removeFavorite = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Pharmacy removed from favorites",
-      favorites: user.favorites,
+      favorites: user.favorites.filter(Boolean).map(p => publicPharmacy(p)),
     });
   } catch (error) {
     console.error("Remove favorite error:", error);

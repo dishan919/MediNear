@@ -1,0 +1,80 @@
+﻿/* Shared MediNear medicine UI, scoped away from the existing shopping demo. */
+.mn-app { --mn-ink: #17382d; --mn-muted: #61756e; --mn-green: #087b59; --mn-line: #dfe9e4; color: var(--mn-ink); background: #f5f8f6; min-height: 100vh; font-family: Arial, sans-serif; }
+.mn-app a { color: inherit; }
+.mn-app button, .mn-app input, .mn-app select { font: inherit; }
+.mn-app button, .mn-app a, .mn-app input, .mn-app select { -webkit-tap-highlight-color: transparent; }
+.mn-app :focus-visible { outline: 3px solid #299978; outline-offset: 4px; }
+.mn-site-header { max-width: 1248px; margin: auto; padding: 24px 32px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.mn-logo { display: inline-flex; align-items: center; gap: 10px; font-size: 24px; letter-spacing: -.8px; font-weight: 800; text-decoration: none; }
+.mn-logo > span { display: grid; place-items: center; width: 36px; height: 36px; background: #087b59; color: white; border-radius: 11px; }
+.mn-site-header nav { display: flex; gap: 28px; align-items: center; }
+.mn-site-header nav a { display: flex; align-items: center; gap: 8px; text-decoration: none; font-size: 14px; font-weight: 600; }
+.mn-button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 44px; padding: 12px 18px; border-radius: 9px; border: 1px solid transparent; font-size: 14px; font-weight: 700; text-decoration: none; cursor: pointer; transition: background .15s, box-shadow .15s; line-height: 1.3; }
+.mn-app .mn-primary { background: #087b59; color: #fff; border-color: #087b59; }
+.mn-app .mn-primary:hover { background: #056347; }
+.mn-app .mn-secondary { background: #fff; color: #234f3f; border-color: #ccdcd3; }
+.mn-app .mn-secondary:hover { background: #f0f7f3; }
+.mn-app .mn-danger { color: #a12b38; background: #fff; border-color: #e9cdd1; }
+.mn-app button:disabled { opacity: .6; cursor: not-allowed; }
+.mn-icon-button { width: 44px; height: 44px; padding: 10px; border: 1px solid #e1e9e5; background: white; flex: 0 0 auto; color: #587268; }
+.mn-text-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 0; background: transparent; color: #087b59; font-weight: 700; font-size: 13px; cursor: pointer; padding: 7px 4px; }
+.mn-text-button:hover { text-decoration: underline; }
+.mn-favorite { flex-shrink: 0; }
+.mn-saved { color: #a92d51; }
+.mn-inline-error { max-width: 160px; color: #a12b38; font-size: 12px; margin-top: 6px; }
+.mn-badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.mn-badge { display: inline-flex; align-items: center; white-space: nowrap; padding: 5px 9px; border-radius: 6px; font-size: 11px; font-weight: 700; line-height: 1.35; }
+.mn-positive { color: #116440; background: #e6f5ed; }
+.mn-negative { color: #a52e39; background: #fff0f0; }
+.mn-neutral { color: #53665e; background: #eef2ef; }
+.mn-blue { color: #285b9a; background: #eaf2ff; }
+.mn-eyebrow { display: flex; align-items: center; gap: 7px; color: #087b59; font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 10px; }
+.mn-section-header { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 24px; }
+.mn-section-header h2 { font-size: 26px; color: #17382d; letter-spacing: -.65px; margin-bottom: 8px; }
+.mn-section-header p:not(.mn-eyebrow) { color: #61756e; font-size: 14px; line-height: 1.6; }
+.mn-result-count { border: 1px solid #dce7e0; background: #fff; border-radius: 30px; padding: 9px 14px; white-space: nowrap; font-size: 12px; color: #53695f; }
+.mn-medicine { display: flex; gap: 20px; padding: 22px; border: 1px solid #e0e9e4; border-radius: 14px; background: #fff; min-width: 0; }
+.mn-medicine-image { width: 96px; height: 104px; object-fit: contain; border-radius: 10px; background: #f4f8f5; flex-shrink: 0; }
+.mn-medicine-body { flex: 1; min-width: 0; }
+.mn-medicine-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
+.mn-medicine h3 { font-size: 18px; color: #1b3c2e; margin: 0 0 6px; overflow-wrap: anywhere; line-height: 1.35; }
+.mn-medicine p { font-size: 13px; color: #64776d; line-height: 1.5; margin: 0; overflow-wrap: anywhere; }
+.mn-medicine .mn-brand { margin-top: 4px; font-size: 11px; }
+.mn-medicine-stats { display: flex; flex-wrap: wrap; gap: 18px 30px; margin-top: 18px; }
+.mn-medicine-stats dt { font-size: 10px; color: #6b7d74; text-transform: uppercase; letter-spacing: .9px; margin-bottom: 6px; }
+.mn-medicine-stats dd { font-size: 13px; font-weight: 700; color: #244b37; }
+.mn-medicine-stats .mn-updated { width: 100%; padding-top: 12px; border-top: 1px solid #ecf1ed; }
+.mn-medicine-stats .mn-updated dd { color: #63766c; font-size: 11px; font-weight: 400; }
+.mn-medicine-compact { padding: 14px; gap: 13px; border-radius: 10px; background: #f8faf8; }
+.mn-medicine-compact .mn-medicine-image { width: 58px; height: 70px; }
+.mn-medicine-compact h3 { font-size: 15px; }
+.mn-medicine-compact .mn-medicine-heading { gap: 8px; }
+.mn-medicine-compact .mn-medicine-stats { margin-top: 12px; gap: 14px 24px; }
+.mn-medicine-compact .mn-medicine-stats dd { font-size: 12px; }
+.mn-medicine-compact .mn-medicine-stats dt { font-size: 9px; }
+.mn-empty { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 16px; min-height: 240px; padding: 36px 20px; background: white; border: 1px dashed #cfded4; border-radius: 14px; text-align: center; color: #567365; }
+.mn-empty h3 { font-size: 20px; color: #234b36; }
+.mn-empty p { font-size: 14px; line-height: 1.6; }
+.mn-muted { color: #61756e; font-size: 13px; line-height: 1.7; }
+.mn-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.mn-local-search { display: flex; gap: 10px; align-items: center; padding: 13px 16px; border: 1px solid #d9e5dd; border-radius: 10px; background: #fff; color: #7a9185; }
+.mn-local-search input { border: 0; background: transparent; flex: 1; min-width: 0; color: #234b36; outline: 0; }
+.mn-local-search:focus-within { outline: 2px solid #299978; outline-offset: 2px; }
+.mn-app .results-map { max-width: 1184px; margin: 0 auto 50px; padding: 24px; background: white; border: 1px solid #dfe9e3; border-radius: 16px; }
+.mn-app .results-map h2 { font-size: 22px; margin-bottom: 14px; }
+.mn-app .results-map p { font-size: 14px; color: #61756e; margin: 12px 0; line-height: 1.6; }
+@media(max-width: 680px) {
+  .mn-site-header { padding: 20px; gap: 12px; }
+  .mn-logo { font-size: 21px; }
+  .mn-site-header nav { gap: 12px; }
+  .mn-site-header nav a { font-size: 12px; }
+  .mn-section-header { align-items: flex-start; }
+  .mn-section-header h2 { font-size: 23px; }
+  .mn-section-header .mn-result-count { padding: 7px 10px; font-size: 11px; }
+  .mn-medicine { gap: 14px; padding: 16px; }
+  .mn-medicine-image { width: 70px; height: 90px; }
+  .mn-medicine-heading { flex-wrap: wrap; gap: 9px; }
+  .mn-medicine-stats { gap: 16px; }
+  .mn-app .results-map { margin: 0 16px 30px; padding: 18px; }
+}
+@media(prefers-reduced-motion: reduce) { .mn-app *, .mn-app *::before, .mn-app *::after { scroll-behavior: auto !important; transition: none !important; } }

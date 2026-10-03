@@ -1,8 +1,10 @@
 # MediNear
 
+Medicine inventory, weekly hours, location-based ranking and emergency search are now implemented. See [the implementation report](MEDICINE_FEATURES.md) for APIs, setup, migration and verification results. See [the customer and owner UI report](MEDICINE_UI_REPORT.md) for the redesigned pages, medicine image support and data-flow tests.
+
 MediNear is a web application designed to help users find nearby pharmacies and access useful pharmacy information in one place. Its current implementation lets users browse pharmacy records, search by name or location text, filter by opening status, save favorites, and access contact and directions links.
 
-The project aims to reduce the time spent locating a suitable pharmacy. Automatic user-location detection, distance-based results, and live medicine availability search are planned improvements.
+The project aims to reduce the time spent locating a suitable pharmacy. Medicine search, explicit current-location detection, distance-based results and emergency filtering are implemented.
 
 ## Key Features
 
@@ -10,34 +12,30 @@ The project aims to reduce the time spent locating a suitable pharmacy. Automati
 - **Form validation:** Required fields, email format, phone number validation, password strength checks, matching password confirmation, and field-level error messages. Password fields include Show/Hide controls.
 - **Password hashing and token authentication:** bcryptjs password hashing and JWT verification for protected backend endpoints.
 - **Pharmacy browsing and search:** Database-backed pharmacy listings with client-side search by pharmacy name, address, or district.
-- **Opening-status filters:** Separate "Open now" and "Open 24 hours" filters based on stored pharmacy flags.
+- **Opening-status filters:** Open Now, 24 Hour, Emergency Mode and distance-radius filters use backend-calculated hours and distance.
 - **Pharmacy contact and directions:** Phone-call links and external Google Maps links using stored coordinates.
 - **Saved pharmacies:** Database-backed favorites, including adding, removing, viewing, and clearing favorites.
 - **User profile:** View and edit name, phone number, and address through authenticated API requests.
 - **Responsive interface:** CSS layouts and media queries for pharmacy listings, authentication forms, and supporting pages.
-- **Local shopping demonstration:** Sample medicine listings, cart quantity controls, checkout validation, an order confirmation page, and locally saved order history with cancellation controls.
+- **Medicine inventory:** Owner-only add/edit/delete, image URLs and customer-visible price/quantity/status. The separate cart, checkout and order history remain local shopping demonstrations.
 
 ### Current Implementation Limits
 
-The pharmacy detail page uses hardcoded sample pharmacies and medicines with numeric IDs. It is not connected to MongoDB pharmacy IDs or live stock data. Cart, checkout, and order history use browser `localStorage`; they do not submit orders to the backend or process payments. Card payment and delivery selections are form options only.
+The pharmacy detail page reads MongoDB pharmacy IDs and live inventory through the API. Cart, checkout, and order history use browser `localStorage`; they do not submit orders to the backend or process payments. Card payment and delivery selections are form options only.
 
-The home page searches all loaded pharmacy records rather than calculating proximity to the user. Opening status comes from stored `isOpen` and `open24Hours` values; it is not calculated from opening schedules or verified in real time.
+Medicine results are ranked by availability, opening status and geographic distance. Opening status is calculated from stored weekly schedules and timezone; missing schedules show Hours unavailable. Embedded Google Maps requires the configured browser key; external directions links remain available.
 
 The Forgot Password link displays an availability notice. Password recovery is not implemented.
 
-## Planned Smart Features
+## Medicine Search and Inventory
 
-1. **Medicine Availability Search — Planned**
-   - Search for a medicine and find nearby pharmacies that have it available.
-   - Connect pharmacy medicine inventories and stock information to the backend.
-
-2. **Smart Pharmacy Ranking — Planned**
-   - Rank suitable pharmacies using medicine availability, open/closed status, and distance from the user.
-   - The current backend lists pharmacies by creation date; no suitability ranking is implemented.
-
-3. **Emergency / 24-Hour Pharmacy Mode — Planned Enhancement**
-   - Provide a dedicated workflow to quickly find suitable pharmacies that are open or operate 24 hours.
-   - Basic open/24-hour filters already exist. Location-aware emergency results and a dedicated emergency mode are planned.
+- Customer medicine search supports case-insensitive partial name/generic/brand matches and available stock.
+- Smart ranking prioritizes open pharmacies, then distance, with emergency and 24-hour filters.
+- `/pharmacy/:id` shows pharmacy information, medicine cards, customer-visible quantities and prices, weekly hours and location.
+- Owners manage their own pharmacy inventory with a responsive table and Add/Edit dialog.
+- Optional HTTPS medicine image URLs use local placeholders when missing or unavailable.
+- From `backend`, run `npm run seed:pharmacies` for safe local development examples.
+- Both apps have `npm run test:integration`; the frontend integration test verifies MongoDB ? API ? React rendering.
 
 ## System Architecture
 
@@ -206,7 +204,7 @@ Open the URL printed by Vite, normally:
 
 Vite may choose another port if `5173` is occupied. Register an account, then log in to access the protected pages. An existing stored token redirects Login/Register visits to Home; use a private browser window to inspect the login page with a fresh session.
 
-The repository has no automated pharmacy seed script. A new database will show an empty listing until pharmacy records are supplied. The sample pharmacy-detail data is separate from the database listings.
+From `backend`, run `npm run seed:pharmacies` to create safe local development pharmacies and medicine inventory. It refuses production/remote databases and preserves existing values on repeat runs. All pharmacy-detail data comes from MongoDB/API records.
 
 ## Authentication
 
