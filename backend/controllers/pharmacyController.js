@@ -50,7 +50,7 @@ const getPharmacyById = async (req, res) => {
 
 // @description Add new pharmacy
 // @route POST /api/pharmacies
-// @access Public for testing
+// @access Pharmacy Owner
 const createPharmacy = async (req, res) => {
   try {
     const {
@@ -108,7 +108,7 @@ const createPharmacy = async (req, res) => {
 
 // @description Update pharmacy
 // @route PUT /api/pharmacies/:id
-// @access Public for testing
+// @access Pharmacy Owner
 const updatePharmacy = async (req, res) => {
   try {
     const pharmacy = await Pharmacy.findByIdAndUpdate(
@@ -143,7 +143,7 @@ const updatePharmacy = async (req, res) => {
 
 // @description Delete pharmacy
 // @route DELETE /api/pharmacies/:id
-// @access Public for testing
+// @access Pharmacy Owner
 const deletePharmacy = async (req, res) => {
   try {
     const pharmacy = await Pharmacy.findByIdAndDelete(req.params.id);

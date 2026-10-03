@@ -23,6 +23,10 @@ test("auth pages render the expected fields and reciprocal route links", async (
         assert.ok(markup.includes("Welcome Back"));
         assert.ok(markup.includes("Login to find pharmacies near you"));
         assert.ok(markup.includes("Forgot Password?"));
+      } else {
+        assert.ok(markup.includes("Account Type"));
+        assert.ok(markup.includes('value="customer" selected=""'));
+        assert.ok(markup.includes('value="pharmacy_owner"'));
       }
     }
   } finally {

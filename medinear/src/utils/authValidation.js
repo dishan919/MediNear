@@ -11,6 +11,9 @@ export function validateLogin(values) {
 
 export function validateRegister(values) {
   const errors = validateLogin(values);
+  if (values.role !== undefined && !["customer", "pharmacy_owner"].includes(values.role)) {
+    errors.role = "Choose Customer or Pharmacy Owner.";
+  }
   if (!values.fullName.trim()) errors.fullName = "Full name is required.";
   if (!values.phone.trim()) {
     errors.phone = "Phone number is required.";

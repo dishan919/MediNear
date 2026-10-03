@@ -19,6 +19,7 @@ import PharmacyDetails from "./pages/PharmacyDetails";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/orderSuccess";
+import PharmacyDashboard from "./pages/PharmacyDashboard";
 
 function App() {
   return (
@@ -39,7 +40,7 @@ function App() {
             }
           />
 
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/" element={<Home />} />
 
             <Route
@@ -76,6 +77,10 @@ function App() {
               path="/order-success/:orderId"
               element={<OrderSuccess />}
             />
+          </Route>
+
+          <Route element={<ProtectedRoute role="pharmacy_owner" />}>
+            <Route path="/pharmacy/dashboard" element={<PharmacyDashboard />} />
           </Route>
 
           <Route

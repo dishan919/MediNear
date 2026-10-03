@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { getUserRole } = require("../utils/roles");
 
 async function protect(req, res, next) {
   try {
@@ -33,6 +34,7 @@ async function protect(req, res, next) {
       });
     }
 
+    user.role = getUserRole(user);
     req.user = user;
 
     next();
@@ -53,6 +55,19 @@ async function protect(req, res, next) {
   }
 }
 
+function requireRole(role) {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ success: false, message: "Please login." });
+    }
+    if (getUserRole(req.user) !== role) {
+      return res.status(403).json({ success: false, message: "You do not have access to this resource." });
+    }
+    next();
+  };
+}
+
 module.exports = {
   protect,
+  requireRole,
 };

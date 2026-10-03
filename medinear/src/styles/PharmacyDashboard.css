@@ -1,0 +1,9 @@
+.owner-dashboard { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+.owner-dashboard header { margin-bottom: 28px; }
+.owner-dashboard-label { color: #047857; font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.owner-dashboard h1 { color: #064e3b; font-size: clamp(26px, 4vw, 38px); margin-bottom: 12px; overflow-wrap: anywhere; }
+.owner-dashboard p { color: #64746c; line-height: 1.6; }
+.owner-dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; }
+.owner-dashboard-card { padding: 24px; background: white; border: 1px solid #dcebe3; border-radius: 14px; }
+.owner-dashboard-card h2 { font-size: 18px; color: #0f3326; margin-bottom: 10px; }
+.owner-dashboard-badge { display: inline-block; margin-top: 18px; padding: 5px 10px; border-radius: 20px; color: #065f46; background: #ecfdf5; font-size: 12px; font-weight: 600; }

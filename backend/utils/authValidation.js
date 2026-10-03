@@ -1,10 +1,15 @@
-﻿function validateAuth(body = {}, register = false) {
+const { USER_ROLES } = require("./roles");
+
+function validateAuth(body = {}, register = false) {
   const { name, email, phone, password } = body;
   const errors = {};
   if (typeof email !== "string" || !email.trim()) errors.email = "Email address is required.";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.email = "Enter a valid email address.";
   if (typeof password !== "string" || !password) errors.password = "Password is required.";
   if (register) {
+    if (body.role !== undefined && !USER_ROLES.includes(body.role)) {
+      errors.role = "Choose Customer or Pharmacy Owner.";
+    }
     if (typeof name !== "string" || !name.trim()) errors.fullName = "Full name is required.";
     if (typeof phone !== "string" || !phone.trim()) errors.phone = "Phone number is required.";
     else if (!/^\+?[\d\s().-]+$/.test(phone.trim()) || !/^\d{9,15}$/.test(phone.replace(/\D/g, ""))) {

@@ -2,6 +2,8 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 const { validateAuth } = require("../utils/authValidation");
+const hashPassword = require("../utils/hashPassword");
+const { getUserRole } = require("../utils/roles");
 
 function generateToken(userId) {
   return jwt.sign(
@@ -25,7 +27,7 @@ async function registerUser(req, res) {
         errors,
       });
     }
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password, role = "customer" } = req.body;
 
     const normalizedEmail = email.trim().toLowerCase();
 
@@ -41,18 +43,14 @@ async function registerUser(req, res) {
       });
     }
 
-    const salt = await bcrypt.genSalt(10);
-
-    const hashedPassword = await bcrypt.hash(
-      password,
-      salt
-    );
+    const hashedPassword = await hashPassword(password);
 
     const user = await User.create({
       name: name.trim(),
       email: normalizedEmail,
       phone: phone.trim(),
       password: hashedPassword,
+      role,
     });
 
     const token = generateToken(user._id);
@@ -68,7 +66,7 @@ async function registerUser(req, res) {
         fullName: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: getUserRole(user),
       },
     });
   } catch (error) {
@@ -135,7 +133,7 @@ async function loginUser(req, res) {
         fullName: user.name,
         email: user.email,
         phone: user.phone,
-        role: user.role,
+        role: getUserRole(user),
       },
     });
   } catch (error) {
@@ -157,7 +155,7 @@ async function getProfile(req, res) {
         fullName: req.user.name,
         email: req.user.email,
         phone: req.user.phone,
-        role: req.user.role,
+        role: getUserRole(req.user),
         createdAt: req.user.createdAt,
       },
     });

@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Pharmacy = require("../models/Pharmacy");
+const { getUserRole } = require("../utils/roles");
 
 // GET /api/users/profile
 // Get currently logged-in user's profile
@@ -16,7 +17,7 @@ const getUserProfile = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      user,
+      user: { ...user.toObject(), role: getUserRole(user) },
     });
   } catch (error) {
     console.error("Get profile error:", error.message);
@@ -60,6 +61,7 @@ const updateUserProfile = async (req, res) => {
       user.profileImage = profileImage.trim();
     }
 
+    user.role = getUserRole(user);
     const updatedUser = await user.save();
 
     res.status(200).json({

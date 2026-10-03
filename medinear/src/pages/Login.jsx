@@ -5,6 +5,7 @@ import AuthLayout from "../components/AuthLayout";
 import AuthField from "../components/AuthField";
 import { validateLogin } from "../utils/authValidation";
 import { useAuth } from "../auth/AuthContext";
+import { getHomeRoute } from "../auth/roles";
 
 function Login() {
   const { login } = useAuth();
@@ -42,7 +43,7 @@ function Login() {
         throw new Error("Invalid authentication response");
       }
       login(response.data);
-      navigate("/", { replace: true });
+      navigate(getHomeRoute(response.data.user), { replace: true });
     } catch (requestError) {
       setErrors(requestError.response?.data?.errors || {});
       setError(requestError.response?.data?.message ||

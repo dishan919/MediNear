@@ -24,19 +24,25 @@ test("route guards redirect guests and authenticated users correctly", async () 
         createElement(AuthContext.Provider, { value: { user, logout() {} } }, createElement(Probe))));
       return result;
     }
-    for (const path of ["/", "/favorites", "/orders", "/profile", "/cart", "/checkout", "/pharmacy/123", "/order-success/123"]) {
+    for (const path of ["/", "/favorites", "/orders", "/profile", "/cart", "/checkout", "/pharmacy/123", "/order-success/123", "/pharmacy/dashboard"]) {
       const result = inspect(ProtectedRoute, null, path);
       assert.equal(result.type, Navigate);
       assert.equal(result.props.to, "/login");
       assert.equal(result.props.replace, true);
     }
     assert.notEqual(inspect(ProtectedRoute, { id: "123" }, "/").type, Navigate);
+    assert.equal(inspect(ProtectedRoute, { role: "customer" }, "/pharmacy/dashboard", { role: "pharmacy_owner" }).props.to, "/");
+    assert.equal(inspect(ProtectedRoute, { role: "pharmacy_owner" }, "/", { role: "customer" }).props.to, "/pharmacy/dashboard");
+    assert.notEqual(inspect(ProtectedRoute, { role: "pharmacy_owner" }, "/pharmacy/dashboard", { role: "pharmacy_owner" }).type, Navigate);
+    assert.notEqual(inspect(ProtectedRoute, { id: "legacy" }, "/", { role: "customer" }).type, Navigate);
     for (const path of ["/login", "/register"]) {
       assert.equal(inspect(GuestRoute, null, path, { children: child }), child);
       const result = inspect(GuestRoute, { id: "123" }, path, { children: child });
       assert.equal(result.type, Navigate);
       assert.equal(result.props.to, "/");
       assert.equal(result.props.replace, true);
+      const ownerResult = inspect(GuestRoute, { role: "pharmacy_owner" }, path, { children: child });
+      assert.equal(ownerResult.props.to, "/pharmacy/dashboard");
     }
     const pending = renderToString(createElement(AuthProvider, null, createElement("p", null, "Home content")));
     assert.ok(pending.includes("Checking your session"));

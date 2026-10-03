@@ -1,12 +1,17 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import "../styles/Session.css";
+import { getHomeRoute, getUserRole } from "../auth/roles";
 
-function ProtectedRoute() {
+function ProtectedRoute({ role }) {
   const { user, logout } = useAuth();
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (role && getUserRole(user) !== role) {
+    return <Navigate to={getHomeRoute(user)} replace />;
   }
 
   return <>

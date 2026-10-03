@@ -8,6 +8,9 @@
 .auth-card .form-group input { width: 100%; min-width: 0; min-height: 48px; background: white; border: 1px solid #cbd5d1; border-radius: 10px; padding: 12px 14px; }
 .auth-card .form-group input:focus { border-color: #059669; outline: 3px solid #d1fae5; }
 .auth-card .form-group input[aria-invalid="true"] { border-color: #b91c1c; }
+.auth-card .form-group select { width: 100%; min-height: 48px; padding: 12px 14px; font: inherit; color: #1f2937; background: white; border: 1px solid #cbd5d1; border-radius: 10px; }
+.auth-card .form-group select:focus { border-color: #059669; outline: 3px solid #d1fae5; }
+.auth-card .form-group select[aria-invalid="true"] { border-color: #b91c1c; }
 .auth-password { position: relative; }
 .auth-card .auth-password input { padding-right: 76px; }
 .auth-password-toggle { position: absolute; right: 8px; top: 4px; min-height: 40px; padding: 0 10px; color: #047857; background: transparent; border: 0; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: bold; }
