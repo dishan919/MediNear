@@ -25,6 +25,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api", require("./routes/alertRoutes"));
 
 app.use((req, res) => {
   res.status(404).json({

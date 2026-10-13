@@ -10,7 +10,7 @@
     "seed": "node scripts/seed.js",
     "seed:pharmacies": "node scripts/seedPharmacies.js",
     "lint": "node scripts/checkSyntax.js",
-    "test:integration": "node --test tests/integration/auth.integration.js"
+    "test:integration": "node --test tests/integration/*.integration.js"
   },
   "keywords": [],
   "author": "",

@@ -1,8 +1,9 @@
+import NotificationBell from './NotificationBell';
 import { NavLink } from "react-router-dom";
 
 function BottomNav() {
   return (
-    <nav className="bottom-nav">
+    <nav className="bottom-nav"><NotificationBell />
       <NavLink
         to="/"
         className={({ isActive }) =>

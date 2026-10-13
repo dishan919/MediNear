@@ -20,7 +20,7 @@ export default function PharmacyCard({ pharmacy, initiallyFavorite = false, onFa
       </div><FavoriteButton pharmacyId={pharmacy._id} initiallyFavorite={initiallyFavorite} onChange={onFavoriteChange} />
     </div>
     <p className="mn-result-address">{pharmacy.address}{pharmacy.district ? `, ${pharmacy.district}` : ''}</p>
-    {!!pharmacy.medicines?.length && <div className="mn-result-medicines">{pharmacy.medicines.map(m => <MedicineCard key={m._id} medicine={m} compact timezone={pharmacy.timezone} />)}</div>}
+    {!!pharmacy.medicines?.length && <div className="mn-result-medicines">{pharmacy.medicines.map(m => <MedicineCard key={m._id} medicine={m} pharmacyId={pharmacy._id} compact timezone={pharmacy.timezone} />)}</div>}
     {pharmacy.rankingReason && <p className="mn-ranking"><Icon name="shield" size={15} />{pharmacy.rank ? `#${pharmacy.rank} recommended` : 'Recommended'}<span>{pharmacy.rankingReason}</span></p>}
     <div className="mn-result-actions"><Link className="mn-button mn-primary" to={detailPath} state={{ returnTo: `${location.pathname}${location.search}` }}>View Details<Icon name="arrow" size={17} /></Link><a className="mn-button mn-secondary" href={directionsUrl(pharmacy)} target="_blank" rel="noopener noreferrer"><Icon name="pin" size={17} />Directions</a>{onViewMap && <button className="mn-text-button" type="button" onClick={() => onViewMap(pharmacy._id)}>View on Map</button>}</div>
   </article>;

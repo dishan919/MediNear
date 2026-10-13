@@ -1,0 +1,10 @@
+const router = require('express').Router();
+const { protect, requireRole } = require('../middleware/authMiddleware');
+const alerts = require('../controllers/alertController');
+router.use(protect, requireRole('customer'));
+router.get('/restock-subscriptions', alerts.subscriptions);
+router.post('/restock-subscriptions', alerts.subscribe);
+router.delete('/restock-subscriptions/:id', alerts.unsubscribe);
+router.get('/notifications', alerts.notifications);
+router.patch('/notifications/:id/read', alerts.markRead);
+module.exports = router;

@@ -21,11 +21,14 @@ import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/orderSuccess";
 import PharmacyDashboard from "./pages/PharmacyDashboard";
 
+import { AlertsProvider } from './auth/AlertsProvider';
+import Notifications from './pages/Notifications';
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
+        <AlertsProvider><Routes>
           <Route
             path="/login"
             element={
@@ -42,6 +45,7 @@ function App() {
 
           <Route element={<ProtectedRoute role="customer" />}>
             <Route path="/" element={<Home />} />
+            <Route path="/notifications" element={<Notifications />} />
 
             <Route
               path="/favorites"
@@ -87,7 +91,7 @@ function App() {
             path="*"
             element={<Navigate to="/" replace />}
           />
-        </Routes>
+        </Routes></AlertsProvider>
       </AuthProvider>
     </BrowserRouter>
   );

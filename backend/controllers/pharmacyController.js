@@ -1,11 +1,21 @@
 const mongoose = require('mongoose');
 const Pharmacy = require('../models/Pharmacy');
+const { isRestock, fulfillRestock } = require('../services/restock');
+const { supportsTransactions } = require('../services/databaseCapabilities');
+const logServerError = require('../utils/logServerError');
 const { publicPharmacy, rankPharmacies } = require('../services/ranking');
 const { validateHours } = require('../services/openingHours');
 const { validCoordinates, distanceKm } = require('../services/distance');
 const { validateMedicine, publicMedicine } = require('../services/inventory');
 const ownerId = req => req.user?._id || req.user?.id;
-const fail = (res, error) => res.status(error.status || (['ValidationError', 'CastError'].includes(error.name) ? 400 : 500)).json({ success: false, message: error.status || error.name === 'ValidationError' ? error.message : 'Unable to process pharmacy request' });
+const fail = (res, error) => {
+  if (!error.status && !['VersionError', 'ValidationError', 'CastError'].includes(error.name)) logServerError('pharmacy request', error);
+  if (error.name === 'VersionError') return res.status(409).json({ success: false, message: 'Inventory changed. Reload and try again.' });
+  return res.status(error.status || (['ValidationError', 'CastError'].includes(error.name) ? 400 : 500)).json({
+    success: false,
+    message: error.status || error.name === 'ValidationError' ? error.message : 'Unable to process pharmacy request',
+  });
+};
 const invalid = message => Object.assign(new Error(message), { status: 400 });
 async function owned(req) {
   if (req.user?.role !== 'pharmacy_owner') throw Object.assign(new Error('Owner access required'), { status: 403 });
@@ -71,6 +81,7 @@ async function inventory(req, res) {
     const p = await owned(req);
     if (req.method === 'GET') return res.json({ success: true, inventory: p.inventory });
     let medicine;
+    let restocked = false;
     if (req.params.medicineId) {
       medicine = p.inventory.id(req.params.medicineId);
       if (!medicine) return res.status(404).json({ success: false, message: 'Medicine not found' });
@@ -79,9 +90,17 @@ async function inventory(req, res) {
     else {
       let data;
       try { data = validateMedicine(req.method === 'PATCH' ? { ...medicine.toObject(), ...req.body } : req.body); } catch (e) { throw invalid(e.message); }
+      restocked = medicine && isRestock(medicine.quantity, data.quantity);
       if (medicine) medicine.set({ ...data, price: data.price }); else p.inventory.push(data);
     }
-    await p.save(); res.status(req.method === 'POST' ? 201 : 200).json({ success: true, inventory: p.inventory });
+    if (restocked) {
+      if (!await supportsTransactions()) throw Object.assign(new Error('Restocking requires MongoDB Atlas or a replica set. Inventory was not changed.'), { status: 503 });
+      await mongoose.connection.transaction(async session => {
+        await p.save({ session });
+        await fulfillRestock(p, medicine, session);
+      });
+    } else await p.save();
+    res.status(req.method === 'POST' ? 201 : 200).json({ success: true, inventory: p.inventory });
   } catch (e) { fail(res, e); }
 }
 async function searchPharmacies(req, res) {
@@ -89,7 +108,7 @@ async function searchPharmacies(req, res) {
     const options = {};
     if (req.query.medicine !== undefined && (typeof req.query.medicine !== 'string' || req.query.medicine.length > 120)) throw invalid('Medicine query must be at most 120 characters');
     options.medicine = req.query.medicine || '';
-    for (const field of ['openNow', 'hour24', 'emergency']) {
+    for (const field of ['openNow', 'hour24', 'emergency', 'includeOutOfStock']) {
       if (req.query[field] !== undefined && !['true', 'false'].includes(req.query[field])) throw invalid(`Invalid ${field} filter`);
       options[field] = req.query[field] === 'true';
     }

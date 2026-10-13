@@ -78,3 +78,16 @@
   .mn-app .results-map { margin: 0 16px 30px; padding: 18px; }
 }
 @media(prefers-reduced-motion: reduce) { .mn-app *, .mn-app *::before, .mn-app *::after { scroll-behavior: auto !important; transition: none !important; } }
+
+.mn-restock { margin-top: 12px; font-size: 13px; }
+.mn-restock p { margin: 8px 0; }
+.mn-restock .mn-button { max-width: 100%; }
+.mn-notification-bell { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; min-height: 44px; }
+.mn-notification-bell strong { background: #087b59; color: white; border-radius: 20px; padding: 3px 7px; }
+.mn-inbox { max-width: 850px; margin: auto; padding: 24px; }
+.mn-notifications { display: grid; gap: 16px; margin-top: 24px; }
+.mn-notification { padding: 20px; background: white; border: 1px solid #dfe9e4; border-radius: 12px; overflow-wrap: anywhere; }
+.mn-notification p { margin: 12px 0; }
+.mn-unread { border-left: 4px solid #087b59; }
+.mn-notification .mn-text-button { margin-right: 16px; }
+@media (max-width: 600px) { .mn-site-header nav { flex-wrap: wrap; gap: 8px; } .mn-notification-bell span { display: none; } .mn-inbox { padding: 16px; } }

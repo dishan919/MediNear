@@ -1,8 +1,10 @@
-﻿const test = require('node:test');
+const test = require('node:test');
 const assert = require('node:assert/strict');
 const express = require('express');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
+const capabilities = require('../services/databaseCapabilities');
+capabilities.supportsTransactions = async () => true;
 const Pharmacy = require('../models/Pharmacy');
 const User = require('../models/User');
 const routes = require('../routes/pharmacyRoutes');
@@ -11,6 +13,8 @@ test('HTTP inventory CRUD, owner isolation, role security, search and validation
   t.after(() => { if (oldSecret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = oldSecret; });
   const owner = new mongoose.Types.ObjectId(), other = new mongoose.Types.ObjectId(), customer = new mongoose.Types.ObjectId();
   const p = new Pharmacy({ owner, name: 'City', address: 'Colombo', district: 'Colombo', phone: '0111234567', latitude: 6.9271, longitude: 79.8612 });
+  t.mock.method(mongoose.connection, 'transaction', async fn => fn({}));
+  t.mock.method(require('../models/RestockSubscription'), 'find', () => ({ session: async () => [] }));
   let saves = 0;
   p.save = async () => { await p.validate(); saves++; return p; };
   t.mock.method(Pharmacy, 'findById', async id => String(id) === String(p._id) ? p : null);
