@@ -1,4 +1,5 @@
-﻿import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import PharmacyStatus from './PharmacyStatus';
 import AssetImage from './AssetImage';
 import FavoriteButton from './FavoriteButton';
 import MedicineCard from './MedicineCard';
@@ -13,7 +14,7 @@ export default function PharmacyCard({ pharmacy, initiallyFavorite = false, onFa
   const detailPath = `/pharmacy/${pharmacy._id}${coordinates.size ? `?${coordinates}` : ''}`;
   return <article className={`mn-result-card ${selected ? 'mn-selected' : ''}`}>
     <div className="mn-result-top"><AssetImage src={pharmacy.image} alt={`${pharmacy.name} pharmacy`} kind="pharmacy" className="mn-pharmacy-thumb" />
-      <div className="mn-result-info"><div className="mn-badge-row"><span className={`mn-badge ${pharmacy.isOpen === true ? 'mn-positive' : pharmacy.isOpen === false ? 'mn-negative' : 'mn-neutral'}`}>{pharmacy.openStatus || 'Hours unavailable'}</span>{pharmacy.open24Hours && <span className="mn-badge mn-blue">24 Hours</span>}</div>
+      <div className="mn-result-info"><PharmacyStatus pharmacy={pharmacy} />
         <h3><Link to={detailPath} state={{ returnTo: `${location.pathname}${location.search}` }}>{pharmacy.name}</Link></h3>
         <p className="mn-hours"><Icon name="clock" size={16} />{pharmacy.hoursToday || 'Hours unavailable'}</p>
         <p className="mn-distance"><Icon name="pin" size={16} />{pharmacy.distance == null ? 'Distance unavailable' : `${pharmacy.distance.toFixed(1)} km away`}</p>

@@ -28,7 +28,7 @@ test('saved pharmacy controls and list render accessible saved, loading, failure
     assert.match(saved, /aria-pressed="true"/); assert.match(saved, /Saved/); assert.match(saved, /Remove from saved pharmacies/);
     const unsaved = render(createElement(Button, { pharmacyId: 'pharmacy', showLabel: true, disabled: true }));
     assert.match(unsaved, /Save Pharmacy/); assert.match(unsaved, /disabled/); assert.match(unsaved, /aria-pressed="false"/);
-    const pharmacy = { _id: 'pharmacy', name: 'Saved Pharmacy', address: 'Colombo', phone: '0111234567', openStatus: 'Open', isOpen: true, open24Hours: true };
+    const pharmacy = { _id: 'pharmacy', name: 'Saved Pharmacy', address: 'Colombo', phone: '0111234567', openStatus: 'Open', isOpen: true, open24Hours: true, openingHours: Array.from({ length: 7 }, (_, day) => ({ day, closed: false, allDay: true })) };
     const list = render(createElement(FavoritesView, { favorites: [pharmacy] }));
     for (const text of ['Saved Pharmacies', 'Saved Pharmacy', 'Colombo', '0111234567', 'Open', '24 Hours', 'View Pharmacy', '/pharmacy/pharmacy']) assert.ok(list.includes(text), text);
     assert.match(render(createElement(FavoritesView, { favorites: [] })), /No saved pharmacies yet\./);
