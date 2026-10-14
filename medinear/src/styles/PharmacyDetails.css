@@ -1,4 +1,4 @@
-﻿.mn-details-inner { max-width: 1248px; padding: 12px 32px 60px; margin: auto; }
+.mn-details-inner { max-width: 1248px; padding: 12px 32px 60px; margin: auto; }
 .mn-back-link { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; font-size: 13px; color: #547160; margin: 12px 0 24px; min-height: 36px; }
 .mn-back-link:hover { color: #087b59; }
 .mn-detail-header { display: flex; gap: 34px; background: #fff; border: 1px solid #dce7df; border-radius: 17px; padding: 28px; }
@@ -28,3 +28,10 @@
 .mn-weekly-hours dd { color: #5d7463; }
 @media(max-width: 900px) { .mn-detail-photo { width: 220px; } .mn-medicine-grid { grid-template-columns: 1fr; } }
 @media(max-width: 680px) { .mn-details .mn-site-header > .mn-muted { display: none; } .mn-details-inner { padding: 0 16px 40px; } .mn-detail-header { flex-direction: column; padding: 18px; gap: 20px; } .mn-detail-photo { width: 100%; height: 180px; min-height: 0; } .mn-detail-summary h1 { font-size: 28px; } .mn-detail-hours { flex-wrap: wrap; } .mn-detail-actions > .mn-button { flex: 1; } .mn-detail-actions .mn-favorite, .mn-detail-actions .mn-favorite button { width: 100%; } .mn-tabs { gap: 22px; } .mn-tabs button { font-size: 12px; } .mn-about-grid { grid-template-columns: 1fr; } .mn-weekly-hours { padding: 5px 14px; } .mn-weekly-hours > div { font-size: 12px; } }
+
+.mn-share-action { min-width: 0; }
+.mn-share-feedback { max-width: 280px; margin-top: 8px; color: #61756e; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.mn-share-feedback[role=alert] { color: #a12b38; }
+.mn-share-feedback label { display: block; margin-top: 8px; }
+.mn-share-feedback input { width: 100%; min-height: 44px; margin-top: 6px; padding: 8px; border: 1px solid #ccdcd3; border-radius: 8px; }
+@media(max-width: 680px) { .mn-share-action { flex: 1; } .mn-share-action > button { width: 100%; } }
