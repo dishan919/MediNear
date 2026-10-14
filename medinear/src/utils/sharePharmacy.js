@@ -16,7 +16,7 @@ function legacyCopy(url, document) {
   } catch { return false; }
   finally { textarea.remove(); active?.focus?.({ preventScroll: true }); }
 }
-export async function copyPharmacyLink(url, navigator, document) {
+export async function copyText(url, navigator, document) {
   try {
     if (typeof navigator?.clipboard?.writeText === 'function') {
       await navigator.clipboard.writeText(url); return true;
@@ -24,6 +24,8 @@ export async function copyPharmacyLink(url, navigator, document) {
   } catch { /* Fall back for denied permissions or older/non-secure browsers. */ }
   return legacyCopy(url, document);
 }
+// Keep the existing Share Pharmacy interface using the same generic clipboard implementation.
+export const copyPharmacyLink = copyText;
 export async function sharePharmacy(pharmacy, environment = {}) {
   const navigator = environment.navigator ?? globalThis.navigator;
   const document = environment.document ?? globalThis.document;

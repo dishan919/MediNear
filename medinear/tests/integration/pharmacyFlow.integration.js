@@ -8,6 +8,7 @@ import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
+import { copyPharmacyAddress, displayedPharmacyAddress } from '../../src/utils/copyPharmacyAddress.js';
 import { sharePharmacy } from '../../src/utils/sharePharmacy.js';
 import { recordPharmacyDetailsView, resolveRecentPharmacies, RECENT_PHARMACIES_KEY } from '../../src/utils/recentPharmacies.js';
 import { createRecentSearchRecorder, RECENT_SEARCHES_KEY } from '../../src/utils/recentSearches.js';
@@ -37,6 +38,10 @@ test('MongoDB medicine add/edit -> customer API -> React detail/card/table rende
     const added = await request(`${base}/inventory`, 'POST', { name: 'Integration Panadol', genericName: 'Paracetamol', quantity: 25, price: 120 }, token);
     assert.equal(added.status, 201); const medicineId = added.data.inventory[0]._id;
     const detail = await request(`${base}?lat=6.9271&lng=79.8612`);
+    let copiedAddress;
+    const copied = await copyPharmacyAddress(displayedPharmacyAddress(detail.data.pharmacy), { navigator: { clipboard: { writeText: async text => { copiedAddress = text; } } } });
+    assert.equal(copied.status, 'copied');
+    assert.equal(copiedAddress, `${detail.data.pharmacy.address}, ${detail.data.pharmacy.district}`);
     let sharePayload;
     const shared = await sharePharmacy(detail.data.pharmacy, { origin: 'https://medinear.test', navigator: { share: async payload => { sharePayload = payload; } } });
     assert.equal(shared.status, 'shared'); assert.equal(sharePayload.url, `https://medinear.test/pharmacy/${pharmacyId}`);
