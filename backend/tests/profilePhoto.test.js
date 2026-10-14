@@ -72,3 +72,54 @@ test('HTTP customer upload, replacement, safe static access, ownership and profi
   const edited = await fetch(origin + '/api/users/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token(customer)}` }, body: JSON.stringify({ name: 'Updated Name', phone: '0779999999', address: 'Galle' }) });
   assert.equal(edited.status, 200); const edit = await edited.json(); assert.equal(edit.user.name, 'Updated Name'); assert.equal(edit.user.profileImage, current); assert.equal(edit.user.email, 'photo@example.test');
 });
+
+test('DELETE photo is customer-scoped, idempotent, safe for missing/unmanaged files and preserves fields', async t => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'medinear-remove-photo-'));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const storage = photoStorage(directory);
+  const secret = process.env.JWT_SECRET; process.env.JWT_SECRET = 'remove-photo-test';
+  t.after(() => { if (secret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = secret; });
+  const customer = new User({ name: 'Customer', email: 'remove@example.test', password: 'private-hash', role: 'customer', phone: '0771234567', address: 'Colombo' });
+  const other = new User({ name: 'Other', email: 'keep@example.test', password: 'private-hash', role: 'customer' });
+  const owner = new User({ name: 'Owner', email: 'owner-remove@example.test', password: 'private-hash', role: 'pharmacy_owner' });
+  const users = new Map([customer, other, owner].map(user => [String(user._id), user]));
+  t.mock.method(User, 'findById', id => ({ select: async () => users.get(String(id)) }));
+  let fail = false;
+  t.mock.method(User, 'findOneAndUpdate', (filter, update, options) => ({ select: async fields => {
+    if (fail) throw new Error('Database failed');
+    assert.equal(options.returnDocument, 'before'); assert.equal(fields.includes('password'), false);
+    const user = users.get(String(filter._id)); if (!user) return null;
+    const previous = user.toObject(); user.profileImage = update.$set.profileImage; return previous;
+  } }));
+  const app = express(); app.use(express.json()); app.use('/api/users', require('../routes/profilePhotoRoutes')(storage));
+  const server = await new Promise(resolve => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  async function remove(user = customer, body) {
+    const r = await fetch(origin + '/api/users/profile/photo', { method: 'DELETE', headers: { 'Content-Type': 'application/json', ...(user ? { Authorization: `Bearer ${jwt.sign({ userId: user._id }, process.env.JWT_SECRET)}` } : {}) }, ...(body ? { body: JSON.stringify(body) } : {}) });
+    return { status: r.status, data: await r.json() };
+  }
+  customer.profileImage = await storage.write(String(customer._id), png, 'png');
+  other.profileImage = await storage.write(String(other._id), png, 'png'); const kept = other.profileImage;
+  const original = customer.profileImage;
+  assert.equal((await remove(null)).status, 401); assert.equal((await remove(owner)).status, 403);
+  assert.equal(customer.profileImage, original);
+  fail = true; const log = t.mock.method(console, 'error', () => {});
+  assert.equal((await remove()).status, 500); assert.equal(customer.profileImage, original);
+  assert.equal((await fetch(origin + original)).status, 200); fail = false; log.mock.restore();
+  const removed = await remove(customer, { userId: String(other._id), profileImage: kept });
+  assert.equal(removed.status, 200); assert.equal(removed.data.user.profileImage, ''); assert.equal(customer.profileImage, '');
+  assert.equal(removed.data.message, 'Profile photo removed.'); assert.equal(removed.data.user.password, undefined);
+  for (const field of ['name', 'email', 'phone', 'address']) assert.equal(removed.data.user[field], customer[field]);
+  assert.equal((await fetch(origin + original)).status, 404); assert.equal((await fetch(origin + kept)).status, 200); assert.equal(other.profileImage, kept);
+  assert.equal((await remove()).status, 200);
+  customer.profileImage = await storage.write(String(customer._id), png, 'png');
+  await storage.remove(customer.profileImage, String(customer._id));
+  assert.equal((await remove()).status, 200); assert.equal(customer.profileImage, '');
+  const asset = path.join(directory, 'default.svg'); await fs.writeFile(asset, '<svg></svg>');
+  for (const value of ['/default.svg', '/api/users/profile-photos/../../default.svg', kept]) {
+    customer.profileImage = value; assert.equal((await remove()).status, 200);
+    assert.equal(customer.profileImage, ''); assert.equal(await fs.readFile(asset, 'utf8'), '<svg></svg>');
+    assert.equal((await fetch(origin + kept)).status, 200);
+  }
+});

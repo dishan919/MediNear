@@ -17,3 +17,8 @@ export async function uploadProfilePhoto(api, file, token) {
   const response = await api.put('/users/profile/photo', file, { headers: { Authorization: `Bearer ${token}`, 'Content-Type': file.type } });
   return response.data;
 }
+
+export async function removeProfilePhoto(api, token) {
+  const response = await api.delete('/users/profile/photo', { headers: { Authorization: `Bearer ${token}` } });
+  return response.data;
+}

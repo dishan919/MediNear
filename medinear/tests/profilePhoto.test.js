@@ -47,3 +47,40 @@ test('photo UI renders initials, saved photo, preview controls, busy state and u
     assert.doesNotMatch(render(createElement(Photo, { user: { name: 'Owner', role: 'pharmacy_owner' }, initials: 'O' })), /Change Photo/);
   } finally { await vite.close(); }
 });
+
+test('remove-photo service calls only current account endpoint and preserves backend failure', async () => {
+  const { removeProfilePhoto } = await import('../src/utils/profilePhoto.js'); let call;
+  const api = { delete: async (...args) => { call = args; return { data: { user: { profileImage: '' }, message: 'Profile photo removed.' } }; } };
+  const result = await removeProfilePhoto(api, 'session');
+  assert.equal(result.user.profileImage, ''); assert.equal(call[0], '/users/profile/photo');
+  assert.deepEqual(call[1], { headers: { Authorization: 'Bearer session' } });
+  api.delete = async () => { throw new Error('Deletion failed'); };
+  await assert.rejects(removeProfilePhoto(api, 'session'), /Deletion failed/);
+});
+test('remove controls require confirmation, Cancel sends no delete, busy blocks changes and cleared photo shows initials', async () => {
+  const vite = await createServer({ server: { middlewareMode: true, hmr: false, ws: false }, appType: 'custom' });
+  try {
+    const { PhotoControls, ProfileAvatar, default: Photo } = await vite.ssrLoadModule('/src/components/ProfilePhoto.jsx');
+    const render = element => renderToString(element);
+    assert.match(render(createElement(PhotoControls, { hasPhoto: true })), /Remove Photo/);
+    assert.doesNotMatch(render(createElement(PhotoControls, { hasPhoto: false })), /Remove Photo/);
+    const saved = render(createElement(Photo, { user: { role: 'customer', name: 'Dissa', profileImage: 'https://example.test/photo.png' }, initials: 'D' }));
+    assert.match(saved, /Remove Photo/); assert.match(saved, /Change Photo/);
+    // Exercise the existing dependency-free controlled-view callback pattern.
+    let confirming = false, requests = 0;
+    const view = () => PhotoControls({ hasPhoto: true, confirming, onRemoveRequest: () => { confirming = true; }, onRemoveCancel: () => { confirming = false; }, onRemoveConfirm: () => { requests++; } });
+    const buttons = element => {
+      if (!element || typeof element !== 'object') return [];
+      if (element.type === 'button') return [element];
+      return [element.props?.children].flat(Infinity).flatMap(buttons);
+    };
+    buttons(view()).find(button => button.props.children === 'Remove Photo').props.onClick();
+    assert.equal(requests, 0); assert.match(render(view()), /Remove profile photo\?/);
+    buttons(view()).find(button => button.props.children === 'Cancel').props.onClick();
+    assert.equal(confirming, false); assert.equal(requests, 0); assert.doesNotMatch(render(view()), /Remove profile photo\?/);
+    const busy = render(createElement(PhotoControls, { hasPhoto: true, confirming: true, removing: true, busy: true }));
+    assert.match(busy, /Removing\.\.\./); assert.equal((busy.match(/disabled/g) || []).length, 3);
+    assert.match(render(createElement(ProfileAvatar, { src: '', name: 'Dissa Kutty', initials: 'DK' })), /DK/);
+    assert.doesNotMatch(render(createElement(ProfileAvatar, { src: '', name: 'Dissa Kutty', initials: 'DK' })), /<img/);
+  } finally { await vite.close(); }
+});

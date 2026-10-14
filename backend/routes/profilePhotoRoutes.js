@@ -32,6 +32,25 @@ function profilePhotoRoutes(storage = photoStorage()) {
       return res.status(error.status || 500).json({ success: false, message: error.status ? error.message : 'Unable to save photo. Please try again.' });
     }
   });
+  router.delete('/profile/photo', protect, requireRole('customer'), async (req, res) => {
+    try {
+      // The authenticated account and its stored path are the only deletion inputs.
+      // Persist first: a database failure must not leave the current photo broken.
+      const previous = await User.findOneAndUpdate(
+        { _id: req.user._id, $or: [{ role: 'customer' }, { role: { $exists: false } }] },
+        { $set: { profileImage: '' } }, { returnDocument: 'before' }
+      ).select('name email phone address profileImage role');
+      if (!previous) return res.status(404).json({ success: false, message: 'Customer account not found.' });
+      try { await storage.remove(previous.profileImage, String(req.user._id)); }
+      catch (error) { logServerError('clean up removed profile photo', error); }
+      const user = { _id: previous._id, name: previous.name, email: previous.email,
+        phone: previous.phone, address: previous.address, role: 'customer', profileImage: '' };
+      return res.json({ success: true, message: 'Profile photo removed.', user });
+    } catch (error) {
+      logServerError('remove profile photo', error);
+      return res.status(500).json({ success: false, message: 'Unable to remove photo. Please try again.' });
+    }
+  });
   router.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
     const status = error.status === 413 ? 413 : error.status === 415 ? 415 : error.status === 404 ? 404 : 400;

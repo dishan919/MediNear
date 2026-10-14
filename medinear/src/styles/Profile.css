@@ -45,3 +45,7 @@
 .mn-profile-photo-actions .mn-button { font-size: 13px; }
 .mn-photo-error { color: #a52e39; }
 @media(max-width: 600px) { .mn-profile-photo .mn-profile-avatar { margin: auto; } .mn-profile-photo-actions { justify-content: center; } }
+
+.mn-profile-photo-controls > .mn-danger { margin-left: 8px; font-size: 13px; }
+.mn-photo-confirmation { margin-top: 12px; padding: 14px; border: 1px solid #e9cdd1; border-radius: 9px; font-size: 14px; line-height: 1.5; }
+@media(max-width: 600px) { .mn-profile-photo-controls > .mn-danger { margin-left: 0; } }

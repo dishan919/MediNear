@@ -1,4 +1,4 @@
-﻿const test = require('node:test');
+const test = require('node:test');
 const assert = require('node:assert/strict');
 const mongoose = require('mongoose');
 const express = require('express');
@@ -42,6 +42,16 @@ test('MongoDB login -> photo upload -> refresh -> edit -> replace -> logout/logi
     const relogin = await login(); assert.equal(relogin.status, 200); assert.equal(relogin.data.user.profileImage, replaced.data.profileImage);
     const refreshed = await request('/api/users/profile', 'GET', relogin.data.token);
     assert.equal(refreshed.data.user.name, 'Updated Customer'); assert.equal(refreshed.data.user.address, 'Galle'); assert.equal(refreshed.data.user.email, email); assert.equal(refreshed.data.user.profileImage, replaced.data.profileImage);
+    const removed = await request('/api/users/profile/photo', 'DELETE', relogin.data.token);
+    assert.equal(removed.status, 200); assert.equal(removed.data.user.profileImage, '');
+    assert.equal((await User.findById(user._id)).profileImage, '');
+    assert.equal((await fs.readdir(directory)).length, 0);
+    assert.equal((await request('/api/users/profile', 'GET', relogin.data.token)).data.user.profileImage, '');
+    const afterRemovalLogin = await login(); assert.equal(afterRemovalLogin.data.user.profileImage, '');
+    const uploadedAgain = await request('/api/users/profile/photo', 'PUT', afterRemovalLogin.data.token, png, 'image/png');
+    assert.equal(uploadedAgain.status, 200);
+    assert.equal((await User.findById(user._id)).profileImage, uploadedAgain.data.profileImage);
+    assert.equal((await fetch(origin + uploadedAgain.data.profileImage)).status, 200);
   } finally {
     if (server) await new Promise(resolve => server.close(resolve));
     if (user) await User.deleteOne({ _id: user._id });

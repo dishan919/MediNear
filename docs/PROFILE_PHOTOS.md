@@ -82,8 +82,8 @@ so separate frontend and backend hosts work.
 
 ## Validation results
 
-- Backend npm test: 34 passed.
-- Frontend npm test: 30 passed.
+- Backend npm test: 35 passed.
+- Frontend npm test: 32 passed.
 - Backend npm run test:integration: 5 passed, 1 skipped.
 - Frontend npm run test:integration: 1 passed.
 - Backend/frontend npm run lint: passed.
@@ -132,3 +132,55 @@ multiple instances need shared storage. Configure the reverse proxy to forward t
 and static path and allow a 2 MB upload body (its limit must not be lower). Avoid serving arbitrary
 backend directories. These are deployment considerations only; no EC2 configuration, deployment,
 GitHub push or .env changes were performed.
+
+## Remove Profile Photo
+
+Added `DELETE /api/users/profile/photo`, protected by the existing JWT/customer middleware.
+It accepts no user ID or photo path. An atomic field-only update clears the authenticated
+customer's profileImage and captures its prior database value; the existing storage.remove
+helper deletes only that customer's exact managed filename. Missing files are ignored.
+Default assets, traversal paths and another account's files are never deleted. If the database
+update fails, the photo file is left intact. Unexpected file-cleanup errors after persistence
+are logged for operational cleanup, following the existing replacement behavior. The endpoint
+returns only safe profile fields with profileImage set to an empty string.
+
+The existing photo controls now show Remove Photo when a photo is stored. Clicking it opens
+an inline "Remove profile photo?" confirmation with Cancel and Remove. Cancel sends no
+request. Confirmation focuses Cancel; cancellation restores focus to the trigger. Removal
+shows "Removing...", locks upload/change/edit conflicts, and updates the existing profile/auth
+state only after success. Failure leaves the photo and confirmation available for retry.
+The existing initials avatar immediately replaces a successfully removed image.
+
+Files modified for removal only:
+
+- backend/routes/profilePhotoRoutes.js
+- medinear/src/utils/profilePhoto.js
+- medinear/src/components/ProfilePhoto.jsx
+- medinear/src/styles/Profile.css
+- backend/tests/profilePhoto.test.js
+- backend/tests/integration/profilePhoto.integration.js
+- medinear/tests/profilePhoto.test.js
+- docs/PROFILE_PHOTOS.md
+
+Removal validation: backend 35 passed; frontend 32 passed; backend integration 5 passed and
+1 existing replica-set-only restock test skipped; frontend integration 1 passed; both lint
+checks, production build and git diff --check passed. HTTP tests cover missing files, unsafe
+paths, unrelated default assets, other accounts, ignored client-supplied IDs/paths, role checks,
+database failure and safe response fields. Real MongoDB tests verify removal persistence and
+successful re-upload. Existing Change Photo and Edit Profile tests remain passing.
+
+Manual removal browser checks (remain to be performed):
+
+1. Log in as a customer with a saved photo and open Profile. Verify Change Photo and Remove
+   Photo are visible. Without a photo, verify initials and no Remove Photo button.
+2. Click Remove Photo. Verify "Remove profile photo?", Cancel and Remove. Click Cancel: the
+   photo remains and no DELETE request is sent.
+3. Click Remove Photo, then Remove. Verify Removing... and disabled actions during the request.
+   After success, verify initials, "Profile photo removed.", and no Remove Photo button.
+4. Refresh, then log out and log in again. Reopen Profile: initials must remain.
+5. Click Change Photo, choose a valid image and Save Photo. Verify the new photo works and
+   Remove Photo returns. Edit name/phone/address and verify both edit behavior and photo remain.
+6. Stop/disconnect the backend during a removal attempt. Verify an inline failure, the saved
+   photo remains, and retry/Cancel work after reconnection.
+
+No schema changes, dependencies, frontend routes, .env changes, push or deployment were added.
