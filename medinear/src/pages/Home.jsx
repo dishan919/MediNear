@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/api';
+import SearchResultCount from '../components/SearchResultCount';
+import { visiblePharmacyResults } from '../utils/searchResults';
 import RecentlyViewedPharmacies from '../components/RecentlyViewedPharmacies';
 import RecentSearches from '../components/RecentSearches';
 import { getRecentSearches, clearRecentSearches, medicineSearchParams, createRecentSearchRecorder } from '../utils/recentSearches';
@@ -33,6 +35,9 @@ export default function Home() {
   const medicine = params.get('medicine') || '';
   const [pharmacies, setPharmacies] = useState([]), [favoriteIds, setFavoriteIds] = useState([]);
   const [loading, setLoading] = useState(true), [error, setError] = useState(''), [retry, setRetry] = useState(0);
+  const [completedRequest, setCompletedRequest] = useState(null);
+  const requestKey = `${queryString}|${retry}`;
+  const searching = loading || completedRequest !== requestKey;
   const [selectedId, setSelectedId] = useState('');
   const [locationMessage, setLocationMessage] = useState('Use your location to find pharmacies nearby.');
   const [locating, setLocating] = useState(false);
@@ -70,16 +75,16 @@ export default function Home() {
           if (history) setRecentSearches(history);
         }
       } catch (e) { if (!controller.signal.aborted) setError(e.response?.data?.message || 'Unable to load pharmacies. Please try again.'); }
-      finally { if (!controller.signal.aborted) setLoading(false); }
+      finally { if (!controller.signal.aborted) { setCompletedRequest(requestKey); setLoading(false); } }
     }, 250);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [queryString, retry, location]);
+  }, [queryString, retry, location, requestKey]);
   useEffect(() => {
     const controller = new AbortController();
     api.get('/users/favorites', { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }, signal: controller.signal }).then(response => setFavoriteIds((response.data.favorites || []).map(p => p._id))).catch(() => {});
     return () => controller.abort();
   }, []);
-  const filtered = useMemo(() => pharmacies.filter(p => [p.name, p.address, p.district].some(value => (value || '').toLowerCase().includes(pharmacyText.trim().toLowerCase()))), [pharmacies, pharmacyText]);
+  const filtered = useMemo(() => visiblePharmacyResults(pharmacies, pharmacyText), [pharmacies, pharmacyText]);
   const selectPharmacy = useCallback(id => { setSelectedId(id); document.getElementById('pharmacy-map')?.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, []);
   function favoriteChange(id, saved) { setFavoriteIds(previous => saved ? [...new Set([...previous, id])] : previous.filter(value => value !== id)); }
   return <div className="mn-app mn-home"><main>
@@ -91,11 +96,11 @@ export default function Home() {
         <p className="mn-location-note" role="status">{location && !locating ? 'Using your location. Distances are straight-line estimates.' : locationMessage}{!location && ' Enable location to filter by distance.'}</p>
       </div>
     </section>
-    <section className="mn-results" aria-busy={loading}><div className="mn-section-header"><div><p className="mn-eyebrow">Recommended for you</p><h2>{medicine ? (params.get('includeOutOfStock') === 'true' ? 'Matching Pharmacies' : 'Available Pharmacies') : 'Explore pharmacies'}</h2><p>{medicine ? `Pharmacies with ${medicine}${params.get('includeOutOfStock') === 'true' ? ', including out-of-stock items' : ' in stock'}` : 'Find opening hours, medicine availability and directions.'}</p></div>{!loading && !error && <span className="mn-result-count">{filtered.length} {filtered.length === 1 ? 'pharmacy' : 'pharmacies'}</span>}</div>
+    <section className="mn-results" aria-busy={searching}><div className="mn-section-header"><div><p className="mn-eyebrow">Recommended for you</p><h2>{medicine ? (params.get('includeOutOfStock') === 'true' ? 'Matching Pharmacies' : 'Available Pharmacies') : 'Explore pharmacies'}</h2><p>{medicine ? `Pharmacies with ${medicine}${params.get('includeOutOfStock') === 'true' ? ', including out-of-stock items' : ' in stock'}` : 'Find opening hours, medicine availability and directions.'}</p></div><SearchResultCount results={filtered} loading={searching} error={error} /></div>
       <div className="mn-results-toolbar"><label><Icon name="search" size={17} /><span className="mn-sr-only">Filter pharmacy or location</span><input type="search" placeholder="Filter pharmacy or location..." value={pharmacyText} onChange={e => changeParam('pharmacy', e.target.value)} /></label><p><Icon name="shield" size={16} />{params.get('sort') === 'nearest' ? 'Ranked by availability, distance and opening status' : 'Ranked by availability, opening status and distance'}</p></div>
-      {loading ? <div className="mn-empty" role="status"><Icon name="search" size={30} /><h3>Finding your pharmacies...</h3></div> : error ? <div className="mn-empty" role="alert"><h3>We couldn't load your results</h3><p>{error}</p><button className="mn-button mn-primary" onClick={() => setRetry(value => value + 1)}>Try again</button></div> : !filtered.length ? <div className="mn-empty"><Icon name="pill" size={36} /><h3>No pharmacies found</h3><p>Try another medicine or adjust your filters.</p><button className="mn-button mn-secondary" onClick={() => setParams(location ? { lat: location.lat, lng: location.lng } : {}, { replace: true })}>Clear filters</button></div> : <div className="mn-result-grid">{filtered.map(p => <PharmacyCard key={p._id} pharmacy={p} initiallyFavorite={favoriteIds.includes(p._id)} onFavoriteChange={favoriteChange} onViewMap={selectPharmacy} selected={selectedId === p._id} />)}</div>}
+      {searching ? <div className="mn-empty" role="status"><Icon name="search" size={30} /><h3>Finding your pharmacies...</h3></div> : error ? <div className="mn-empty" role="alert"><h3>We couldn't load your results</h3><p>{error}</p><button className="mn-button mn-primary" onClick={() => setRetry(value => value + 1)}>Try again</button></div> : !filtered.length ? <div className="mn-empty"><Icon name="pill" size={36} /><h3>No pharmacies found</h3><p>Try another medicine or adjust your filters.</p><button className="mn-button mn-secondary" onClick={() => setParams(location ? { lat: location.lat, lng: location.lng } : {}, { replace: true })}>Clear filters</button></div> : <div className="mn-result-grid">{filtered.map(p => <PharmacyCard key={p._id} pharmacy={p} initiallyFavorite={favoriteIds.includes(p._id)} onFavoriteChange={favoriteChange} onViewMap={selectPharmacy} selected={selectedId === p._id} />)}</div>}
     </section>
-    <PharmacyMap pharmacies={error || loading ? [] : filtered} location={location} selectedId={selectedId} onSelect={selectPharmacy} />
+    <PharmacyMap pharmacies={error || searching ? [] : filtered} location={location} selectedId={selectedId} onSelect={selectPharmacy} />
     <RecentlyViewedPharmacies />
     <FaqSection />
   </main><SiteFooter /></div>;

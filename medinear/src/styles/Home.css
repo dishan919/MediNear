@@ -39,3 +39,5 @@
 .mn-recent-chip { min-height: 44px; max-width: 100%; padding: 9px 14px; border: 1px solid #ccdcd3; border-radius: 24px; background: #f0f7f3; color: #234f3f; cursor: pointer; font-size: 13px; overflow-wrap: anywhere; text-align: left; }
 .mn-recent-chip:hover { background: #e6f5ed; border-color: #9dc5ac; }
 .mn-recent-searches > p { margin-top: 10px; color: #61756e; font-size: 11px; line-height: 1.6; }
+
+.mn-results > .mn-section-header { flex-wrap: wrap; }

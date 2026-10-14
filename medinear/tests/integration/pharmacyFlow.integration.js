@@ -8,6 +8,7 @@ import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
+import { visiblePharmacyResults, searchResultCountText } from '../../src/utils/searchResults.js';
 import { copyPharmacyAddress, displayedPharmacyAddress } from '../../src/utils/copyPharmacyAddress.js';
 import { sharePharmacy } from '../../src/utils/sharePharmacy.js';
 import { recordPharmacyDetailsView, resolveRecentPharmacies, RECENT_PHARMACIES_KEY } from '../../src/utils/recentPharmacies.js';
@@ -80,6 +81,16 @@ test('MongoDB medicine add/edit -> customer API -> React detail/card/table rende
       assert.ok(lowSearch); assert.ok(render(createElement(Card, { pharmacy: lowSearch })).includes('Low Stock'));
       assert.ok(render(createElement(Table, { medicines: (await Pharmacy.findById(pharmacyId)).inventory })).includes('Low Stock'));
     }
+    const allDay = Array.from({ length: 7 }, (_, day) => ({ day, closed: false, allDay: true }));
+    assert.equal((await request(`${base}/hours`, 'PUT', { openingHours: allDay, timezone: 'Asia/Colombo' }, token)).status, 200);
+    for (const query of ['province=Western', 'district=Colombo', 'openNow=true', 'hour24=true', 'includeOutOfStock=false', 'lat=6.9271&lng=79.8612&radius=5&sort=smart', 'lat=6.9271&lng=79.8612&radius=5&sort=nearest']) {
+      const response = await request(`/pharmacies/search?medicine=Integration%20Panadol&${query}`);
+      assert.equal(response.status, 200);
+      const visible = visiblePharmacyResults(response.data.pharmacies);
+      assert.equal(visible.length, 1, query); assert.equal(searchResultCountText(visible), '1 pharmacy found');
+    }
+    const none = await request('/pharmacies/search?medicine=Integration%20Panadol&province=Central');
+    assert.equal(searchResultCountText(visiblePharmacyResults(none.data.pharmacies)), 'No pharmacies found');
     assert.equal((await request(`${base}/inventory/${medicineId}`, 'PATCH', { quantity: 0, price: 130, imageUrl: 'https://images.example.test/panadol.png' }, token)).status, 200);
     const updated = (await request(base)).data.pharmacy;
     assert.equal(updated.medicines[0].quantity, 0); assert.equal(updated.medicines[0].availability, 'Out of Stock');
