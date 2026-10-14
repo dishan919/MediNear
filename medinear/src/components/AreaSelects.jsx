@@ -1,0 +1,4 @@
+import { locations } from '../utils/locationDiscovery';
+export default function AreaSelects({ province = '', district = '', onProvinceChange, onDistrictChange, required = false }) {
+  return <><label className="mn-area-filter">Province{required && ' *'}<select required={required} value={province} onChange={e => onProvinceChange(e.target.value)}><option value="">{required ? 'Select province' : 'All Provinces'}</option>{Object.keys(locations).map(value => <option key={value} value={value}>{value}</option>)}</select></label><label className="mn-area-filter">District{required && ' *'}<select required={required} disabled={!province} value={district} onChange={e => onDistrictChange(e.target.value)}><option value="">{required ? 'Select district' : 'All Districts'}</option>{(locations[province] || []).map(value => <option key={value} value={value}>{value}</option>)}</select></label></>;
+}

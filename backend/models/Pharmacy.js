@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { locations } = require("../services/locations");
 
 const pharmacySchema = new mongoose.Schema(
   {
@@ -27,6 +28,7 @@ const pharmacySchema = new mongoose.Schema(
       trim: true,
     },
 
+    province: { type: String, enum: Object.keys(locations), trim: true },
     district: {
       type: String,
       required: [true, "District is required"],
@@ -42,11 +44,13 @@ const pharmacySchema = new mongoose.Schema(
     latitude: {
       type: Number,
       required: [true, "Latitude is required"],
+      min: -90, max: 90,
     },
 
     longitude: {
       type: Number,
       required: [true, "Longitude is required"],
+      min: -180, max: 180,
     },
 
     open24Hours: {
@@ -69,6 +73,11 @@ const pharmacySchema = new mongoose.Schema(
     optimisticConcurrency: true,
   }
 );
+
+// Legacy pharmacies without a province remain valid until their area is edited.
+pharmacySchema.pre("validate", function () {
+  if (this.province && !locations[this.province]?.includes(this.district)) this.invalidate("district", "District does not belong to the selected province");
+});
 
 const Pharmacy = mongoose.model("Pharmacy", pharmacySchema);
 

@@ -91,3 +91,7 @@
 .mn-unread { border-left: 4px solid #087b59; }
 .mn-notification .mn-text-button { margin-right: 16px; }
 @media (max-width: 600px) { .mn-site-header nav { flex-wrap: wrap; gap: 8px; } .mn-notification-bell span { display: none; } .mn-inbox { padding: 16px; } }
+
+.mn-area-filter { display: flex; flex-direction: column; gap: 6px; min-width: 140px; font-size: 13px; color: #234f3f; }
+.mn-area-filter select { min-height: 44px; max-width: 100%; padding: 9px 12px; border: 1px solid #ccdcd3; border-radius: 9px; background: #fff; color: #234f3f; }
+@media(max-width: 680px) { .mn-filter-row .mn-area-filter { flex: 1 1 140px; min-width: 0; } }

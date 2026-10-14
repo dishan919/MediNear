@@ -19,7 +19,7 @@ export default function PharmacyCard({ pharmacy, initiallyFavorite = false, onFa
         <p className="mn-distance"><Icon name="pin" size={16} />{pharmacy.distance == null ? 'Distance unavailable' : `${pharmacy.distance.toFixed(1)} km away`}</p>
       </div><FavoriteButton showLabel={savedList} pharmacyId={pharmacy._id} initiallyFavorite={initiallyFavorite} onChange={onFavoriteChange} />
     </div>
-    <p className="mn-result-address">{pharmacy.address}{pharmacy.district ? `, ${pharmacy.district}` : ''}</p>
+    <p className="mn-result-address">{pharmacy.address}{pharmacy.district ? `, ${pharmacy.district}` : ''}{pharmacy.province ? `, ${pharmacy.province}` : ''}</p>
     {savedList && pharmacy.phone && <p className="mn-result-address"><a href={`tel:${pharmacy.phone}`}>{pharmacy.phone}</a></p>}
     {!!pharmacy.medicines?.length && <div className="mn-result-medicines">{pharmacy.medicines.map(m => <MedicineCard key={m._id} medicine={m} pharmacyId={pharmacy._id} compact timezone={pharmacy.timezone} />)}</div>}
     {pharmacy.rankingReason && <p className="mn-ranking"><Icon name="shield" size={15} />{pharmacy.rank ? `#${pharmacy.rank} recommended` : 'Recommended'}<span>{pharmacy.rankingReason}</span></p>}

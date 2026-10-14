@@ -7,6 +7,7 @@ const { publicPharmacy, rankPharmacies } = require('../services/ranking');
 const { validateHours } = require('../services/openingHours');
 const { validCoordinates, distanceKm } = require('../services/distance');
 const { validateMedicine, publicMedicine } = require('../services/inventory');
+const { validateArea, provinceForDistrict, canonicalDistrict } = require('../services/locations');
 const ownerId = req => req.user?._id || req.user?.id;
 const fail = (res, error) => {
   if (!error.status && !['VersionError', 'ValidationError', 'CastError'].includes(error.name)) logServerError('pharmacy request', error);
@@ -25,19 +26,25 @@ async function owned(req) {
   if (!pharmacy.owner || String(pharmacy.owner) !== String(ownerId(req))) throw Object.assign(new Error('This pharmacy does not belong to you'), { status: 403 });
   return pharmacy;
 }
-function profile(body, creating = false) {
+function profile(body, creating = false, current = {}) {
   const result = {};
-  for (const field of ['name', 'address', 'district', 'phone', 'image']) {
+  for (const field of ['name', 'address', 'district', 'phone', 'image', 'province']) {
     if (body[field] !== undefined) {
       if (typeof body[field] !== 'string' || body[field].length > 500 || (field !== 'image' && !body[field].trim())) throw invalid(`Invalid ${field}`);
       result[field] = body[field].trim();
-    } else if (creating && field !== 'image') throw invalid(`${field} is required`);
+    } else if (creating && !['image', 'province'].includes(field)) throw invalid(`${field} is required`);
   }
   for (const [field, max] of [['latitude', 90], ['longitude', 180]]) {
     if (body[field] !== undefined) {
       if (typeof body[field] !== 'number' || !Number.isFinite(body[field]) || Math.abs(body[field]) > max) throw invalid(`Invalid ${field}`);
       result[field] = body[field];
     } else if (creating) throw invalid(`${field} is required`);
+  }
+  if (creating || body.province !== undefined || body.district !== undefined) {
+    const district = canonicalDistrict(result.district ?? current.district) || result.district || current.district;
+    const province = result.province ?? (body.district !== undefined ? provinceForDistrict(district) : current.province || provinceForDistrict(district));
+    try { validateArea(province, district); } catch (e) { throw invalid(e.message); }
+    result.province = province; result.district = district;
   }
   return result;
 }
@@ -51,7 +58,7 @@ async function getPharmacyById(req, res) {
     if (!p) return res.status(404).json({ success: false, message: 'Pharmacy not found' });
     let distance = null;
     if (req.query.lat !== undefined || req.query.lng !== undefined) {
-      if (typeof req.query.lat !== 'string' || typeof req.query.lng !== 'string' || req.query.lat === '' || req.query.lng === '' || !validCoordinates(Number(req.query.lat), Number(req.query.lng))) throw invalid('Valid latitude and longitude required together');
+      if (typeof req.query.lat !== 'string' || typeof req.query.lng !== 'string' || req.query.lat.trim() === '' || req.query.lng.trim() === '' || !validCoordinates(Number(req.query.lat), Number(req.query.lng))) throw invalid('Valid latitude and longitude required together');
       distance = distanceKm(Number(req.query.lat), Number(req.query.lng), p.latitude, p.longitude);
     }
     res.json({ success: true, pharmacy: { ...publicPharmacy(p), distance, medicines: (p.inventory || []).map(publicMedicine) } });
@@ -64,7 +71,7 @@ async function createPharmacy(req, res) {
   try { const pharmacy = await Pharmacy.create({ ...profile(req.body, true), owner: ownerId(req) }); res.status(201).json({ success: true, pharmacy }); } catch (e) { fail(res, e); }
 }
 async function updatePharmacy(req, res) {
-  try { const p = await owned(req); Object.assign(p, profile(req.body)); await p.save(); res.json({ success: true, pharmacy: p }); } catch (e) { fail(res, e); }
+  try { const p = await owned(req); Object.assign(p, profile(req.body, false, p)); await p.save(); res.json({ success: true, pharmacy: p }); } catch (e) { fail(res, e); }
 }
 async function deletePharmacy(req, res) {
   try { await owned(req); await Pharmacy.deleteOne({ _id: req.params.id, owner: ownerId(req) }); res.json({ success: true }); } catch (e) { fail(res, e); }
@@ -106,6 +113,11 @@ async function inventory(req, res) {
 async function searchPharmacies(req, res) {
   try {
     const options = {};
+    if (Object.keys(req.query).some(key => /^(province|district|lat|lng|radius|sort)\[/.test(key))) throw invalid('Location filters must be scalar values');
+    for (const field of ['province', 'district']) if (req.query[field] !== undefined) options[field] = req.query[field];
+    try { validateArea(options.province, options.district); } catch (e) { throw invalid(e.message); }
+    if (req.query.sort !== undefined && !['smart', 'nearest'].includes(req.query.sort)) throw invalid('Invalid sort order');
+    options.sort = req.query.sort || 'smart';
     if (req.query.medicine !== undefined && (typeof req.query.medicine !== 'string' || req.query.medicine.length > 120)) throw invalid('Medicine query must be at most 120 characters');
     options.medicine = req.query.medicine || '';
     for (const field of ['openNow', 'hour24', 'emergency', 'includeOutOfStock']) {
@@ -115,13 +127,14 @@ async function searchPharmacies(req, res) {
     if (req.query.lat !== undefined || req.query.lng !== undefined) {
       if (typeof req.query.lat !== 'string' || typeof req.query.lng !== 'string') throw invalid('Valid latitude and longitude required together');
       options.lat = Number(req.query.lat); options.lng = Number(req.query.lng);
-      if (req.query.lat === '' || req.query.lng === '' || !validCoordinates(options.lat, options.lng)) throw invalid('Valid latitude and longitude required together');
+      if (req.query.lat.trim() === '' || req.query.lng.trim() === '' || !validCoordinates(options.lat, options.lng)) throw invalid('Valid latitude and longitude required together');
     }
     if (req.query.radius !== undefined) {
       if (typeof req.query.radius !== 'string') throw invalid('Invalid radius');
       options.radius = Number(req.query.radius);
       if (!Number.isFinite(options.radius) || options.radius <= 0 || options.radius > 500 || options.lat === undefined) throw invalid('Radius requires location and must be 0–500 km');
     }
+    if (options.sort === 'nearest' && options.lat === undefined) throw invalid('Nearest ordering requires location');
     // Embedded inventory query uses literal text, never user-provided regular expressions.
     const pharmacies = rankPharmacies(await Pharmacy.find().lean(), options);
     res.json({ success: true, count: pharmacies.length, pharmacies, locationAvailable: options.lat !== undefined });

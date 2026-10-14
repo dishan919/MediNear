@@ -28,7 +28,7 @@ test('customer search, cards, details and owner forms render stock, price, image
   try {
     const { default: Home } = await server.ssrLoadModule('/src/pages/Home.jsx');
     const home = render(createElement(Home));
-    for (const text of ['Find Medicines', 'Search medicine...', 'Search', 'Emergency Mode', 'Use current location', 'Open Now', '24 Hour', 'Distance radius', 'Google pharmacy map']) assert.ok(home.includes(text), text);
+    for (const text of ['Find Medicines', 'Search medicine...', 'Search', 'Emergency Mode', 'Use My Location', 'Open Now', '24 Hour', 'Distance radius', 'Google pharmacy map']) assert.ok(home.includes(text), text);
     const { AuthContext } = await server.ssrLoadModule('/src/auth/AuthContext.jsx');
     const { default: Dashboard } = await server.ssrLoadModule('/src/pages/PharmacyDashboard.jsx');
     const dashboard = render(createElement(AuthContext.Provider, { value: { user: { name: 'Owner' } } }, createElement(Dashboard)));
