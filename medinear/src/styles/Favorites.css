@@ -1,0 +1,5 @@
+.mn-favorites-inner { max-width: 1184px; margin: auto; padding: 24px 32px 48px; }
+.mn-saved-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.mn-favorites .mn-result-top { flex-wrap: wrap; }
+.mn-favorites .mn-result-address { overflow-wrap: anywhere; }
+@media (max-width: 680px) { .mn-favorites-inner { padding: 16px; } .mn-saved-grid { grid-template-columns: minmax(0, 1fr); } .mn-favorites .mn-result-top .mn-favorite { width: 100%; } .mn-favorites .mn-result-top .mn-favorite button { width: 100%; } }

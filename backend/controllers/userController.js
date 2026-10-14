@@ -104,8 +104,7 @@ const getFavorites = async (req, res) => {
       success: true,
       favorites: (user.favorites || []).filter(Boolean).map(p => publicPharmacy(p)),
     });
-  } catch (error) {
-    console.error("Get favorites error:", error);
+  } catch {
 
     return res.status(500).json({
       success: false,
@@ -114,79 +113,31 @@ const getFavorites = async (req, res) => {
   }
 };
 
-const addFavorite = async (req, res) => {
+// Atomic set operations prevent duplicates even when requests arrive concurrently.
+const changeFavorite = (saved) => async (req, res) => {
   try {
     const { pharmacyId } = req.params;
-
-    const pharmacy = await Pharmacy.findById(pharmacyId);
-
-    if (!pharmacy) {
-      return res.status(404).json({
-        success: false,
-        message: "Pharmacy not found",
-      });
+    if (!require("mongoose").isObjectIdOrHexString(pharmacyId)) {
+      return res.status(400).json({ success: false, message: "Invalid pharmacy ID" });
     }
-
-    const user = await User.findById(req.user._id);
-
-    const alreadyFavorite = user.favorites.some(
-      (id) => id.toString() === pharmacyId
-    );
-
-    if (!alreadyFavorite) {
-      user.favorites.push(pharmacyId);
-      await user.save();
+    if (!await Pharmacy.findById(pharmacyId)) {
+      return res.status(404).json({ success: false, message: "Pharmacy not found" });
     }
-
-    await user.populate("favorites");
-
-    return res.status(200).json({
-      success: true,
-      message: alreadyFavorite
-        ? "Pharmacy already in favorites"
-        : "Pharmacy added to favorites",
-      favorites: user.favorites.filter(Boolean).map(p => publicPharmacy(p)),
-    });
-  } catch (error) {
-    console.error("Add favorite error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Unable to add favorite",
-    });
-  }
-};
-
-const removeFavorite = async (req, res) => {
-  try {
-    const { pharmacyId } = req.params;
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        $pull: {
-          favorites: pharmacyId,
-        },
-      },
-      {
-        new: true,
-      }
+    const user = await User.findByIdAndUpdate(req.user._id,
+      saved ? { $addToSet: { favorites: pharmacyId } } : { $pull: { favorites: pharmacyId } },
+      { returnDocument: "after" }
     ).populate("favorites");
-
-    return res.status(200).json({
-      success: true,
-      message: "Pharmacy removed from favorites",
-      favorites: user.favorites.filter(Boolean).map(p => publicPharmacy(p)),
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    return res.status(200).json({ success: true, saved,
+      message: saved ? "Pharmacy saved" : "Pharmacy removed from saved pharmacies",
+      favorites: (user.favorites || []).filter(Boolean).map(p => publicPharmacy(p)),
     });
-  } catch (error) {
-    console.error("Remove favorite error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Unable to remove favorite",
-    });
+  } catch {
+    return res.status(500).json({ success: false, message: "Unable to update saved pharmacies" });
   }
 };
+const addFavorite = changeFavorite(true);
+const removeFavorite = changeFavorite(false);
 
 const clearFavorites = async (req, res) => {
   try {
@@ -199,8 +150,7 @@ const clearFavorites = async (req, res) => {
       message: "All favorites removed",
       favorites: [],
     });
-  } catch (error) {
-    console.error("Clear favorites error:", error);
+  } catch {
 
     return res.status(500).json({
       success: false,

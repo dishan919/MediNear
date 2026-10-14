@@ -11,30 +11,32 @@ const {
 
 const {
   protect,
+  requireRole,
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+const customer = [protect, requireRole("customer")];
 
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, updateUserProfile);
 
-router.get("/favorites", protect, getFavorites);
+router.get("/favorites", ...customer, getFavorites);
 
 router.post(
   "/favorites/:pharmacyId",
-  protect,
+  ...customer,
   addFavorite
 );
 
 router.delete(
   "/favorites/:pharmacyId",
-  protect,
+  ...customer,
   removeFavorite
 );
 
 router.delete(
   "/favorites",
-  protect,
+  ...customer,
   clearFavorites
 );
 
