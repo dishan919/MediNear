@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
 import api from '../api/api';
+import { useAuth } from '../auth/AuthContext';
+import { recordPharmacyDetailsView } from '../utils/recentPharmacies';
 import { favoritesService } from '../api/favorites';
 import PharmacyStatus from '../components/PharmacyStatus';
 import AssetImage from '../components/AssetImage';
@@ -36,6 +38,8 @@ export function PharmacyDetailsView({ pharmacy, backTo = '/', location, favorite
 }
 export default function PharmacyDetails() {
   const { id } = useParams();
+  const { user } = useAuth() || {};
+  const accountId = user?.id || user?._id, customerRole = user?.role;
   const route = useLocation();
   const [params, setParams] = useSearchParams();
   const location = useMemo(() => coordinatesFromSearch(params.toString()), [params]);
@@ -44,9 +48,9 @@ export default function PharmacyDetails() {
   const backTo = /^\/(?:favorites(?:\?|$)|\?|$)/.test(route.state?.returnTo || '') ? route.state.returnTo : '/';
   useEffect(() => {
     const controller = new AbortController(); setLoading(true); setError('');
-    api.get(`/pharmacies/${id}`, { params: location || {}, signal: controller.signal }).then(response => { if (!controller.signal.aborted) setPharmacy(response.data.pharmacy); }).catch(e => { if (!controller.signal.aborted) setError(e.response?.data?.message || 'Unable to load this pharmacy.'); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    api.get(`/pharmacies/${id}`, { params: location || {}, signal: controller.signal }).then(response => { if (!controller.signal.aborted) { setPharmacy(response.data.pharmacy); recordPharmacyDetailsView({ id: accountId, role: customerRole }, response.data, id); } }).catch(e => { if (!controller.signal.aborted) setError(e.response?.data?.message || 'Unable to load this pharmacy.'); }).finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, [id, location, retry]);
+  }, [id, location, retry, accountId, customerRole]);
   useEffect(() => {
     const controller = new AbortController(); setFavoriteLoading(true); setFavoriteError(''); setFavorite(false);
     favoritesService(api, localStorage).list(controller.signal).then(favorites => {

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/api';
+import RecentlyViewedPharmacies from '../components/RecentlyViewedPharmacies';
 import RecentSearches from '../components/RecentSearches';
 import { getRecentSearches, clearRecentSearches, medicineSearchParams, createRecentSearchRecorder } from '../utils/recentSearches';
 import FaqSection from '../components/FaqSection';
@@ -95,6 +96,7 @@ export default function Home() {
       {loading ? <div className="mn-empty" role="status"><Icon name="search" size={30} /><h3>Finding your pharmacies...</h3></div> : error ? <div className="mn-empty" role="alert"><h3>We couldn't load your results</h3><p>{error}</p><button className="mn-button mn-primary" onClick={() => setRetry(value => value + 1)}>Try again</button></div> : !filtered.length ? <div className="mn-empty"><Icon name="pill" size={36} /><h3>No pharmacies found</h3><p>Try another medicine or adjust your filters.</p><button className="mn-button mn-secondary" onClick={() => setParams(location ? { lat: location.lat, lng: location.lng } : {}, { replace: true })}>Clear filters</button></div> : <div className="mn-result-grid">{filtered.map(p => <PharmacyCard key={p._id} pharmacy={p} initiallyFavorite={favoriteIds.includes(p._id)} onFavoriteChange={favoriteChange} onViewMap={selectPharmacy} selected={selectedId === p._id} />)}</div>}
     </section>
     <PharmacyMap pharmacies={error || loading ? [] : filtered} location={location} selectedId={selectedId} onSelect={selectPharmacy} />
+    <RecentlyViewedPharmacies />
     <FaqSection />
   </main><SiteFooter /></div>;
 }

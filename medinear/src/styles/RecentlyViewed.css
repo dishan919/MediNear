@@ -1,0 +1,12 @@
+.mn-recent-pharmacies { max-width: 1248px; margin: 0 auto; padding: 0 32px 40px; }
+.mn-recent-pharmacies-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.mn-recent-pharmacies-heading h2 { font-size: 21px; letter-spacing: -.4px; }
+.mn-recent-pharmacies-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.mn-recent-pharmacy-card { padding: 16px; gap: 10px; box-shadow: none; }
+.mn-recent-pharmacy-card h3 { font-size: 16px; line-height: 1.4; overflow-wrap: anywhere; }
+.mn-recent-pharmacy-card h3 a { text-decoration: none; }
+.mn-recent-pharmacy-card h3 a:hover { text-decoration: underline; }
+.mn-recent-pharmacy-card .mn-result-address { margin: 0; }
+.mn-recent-pharmacy-card .mn-result-actions { margin-top: auto; padding-top: 12px; }
+@media(max-width: 900px) { .mn-recent-pharmacies-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media(max-width: 600px) { .mn-recent-pharmacies { padding: 0 16px 32px; } .mn-recent-pharmacies-grid { grid-template-columns: minmax(0, 1fr); } }

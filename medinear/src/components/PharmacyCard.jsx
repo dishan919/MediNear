@@ -6,12 +6,18 @@ import MedicineCard from './MedicineCard';
 import Icon from './Icon';
 import { directionsUrl } from '../utils/medicineDisplay';
 import '../styles/PharmacyCard.css';
-export default function PharmacyCard({ pharmacy, initiallyFavorite = false, onFavoriteChange, onViewMap, selected, savedList = false }) {
+export default function PharmacyCard({ pharmacy, initiallyFavorite = false, onFavoriteChange, onViewMap, selected, savedList = false, compactRecent = false, onRemoveRecentlyViewed }) {
   const location = useLocation();
   const search = new URLSearchParams(location.search);
   const coordinates = new URLSearchParams();
   for (const key of ['lat', 'lng']) if (search.has(key)) coordinates.set(key, search.get(key));
   const detailPath = `/pharmacy/${pharmacy._id}${coordinates.size ? `?${coordinates}` : ''}`;
+  if (compactRecent) return <article className="mn-result-card mn-recent-pharmacy-card">
+    <h3><Link to={detailPath} state={{ returnTo: `${location.pathname}${location.search}` }}>{pharmacy.name}</Link></h3>
+    <p className="mn-result-address">{[pharmacy.district, pharmacy.province].filter(Boolean).join(', ')}</p>
+    <PharmacyStatus pharmacy={pharmacy} />
+    <div className="mn-result-actions"><Link className="mn-button mn-secondary" to={detailPath} state={{ returnTo: `${location.pathname}${location.search}` }}>View Pharmacy</Link><button type="button" className="mn-text-button" aria-label={`Remove ${pharmacy.name} from recently viewed pharmacies`} onClick={() => onRemoveRecentlyViewed?.(pharmacy._id)}>Remove</button></div>
+  </article>;
   return <article className={`mn-result-card ${selected ? 'mn-selected' : ''}`}>
     <div className="mn-result-top"><AssetImage src={pharmacy.image} alt={`${pharmacy.name} pharmacy`} kind="pharmacy" className="mn-pharmacy-thumb" />
       <div className="mn-result-info"><PharmacyStatus pharmacy={pharmacy} />
