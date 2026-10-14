@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import api from "../api/api";
+import ProfilePhoto from "../components/ProfilePhoto";
+import { useAuth } from "../auth/AuthContext";
 import Icon from "../components/Icon";
 import "../styles/MedicineUI.css";
 import "../styles/Profile.css";
 
 function Profile() {
+  const auth = useAuth();
+  const [photoSaving, setPhotoSaving] = useState(false);
   const [user, setUser] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -135,6 +139,7 @@ function Profile() {
         })
       );
 
+      auth?.updateUser?.(updatedUser);
       setSuccessMessage(
         response.data.message ||
           "Profile updated successfully."
@@ -194,7 +199,10 @@ function Profile() {
         ) : (
           <section className="mn-profile-card" aria-labelledby="profile-user-name">
             <div className="mn-profile-identity">
-              <div className="mn-profile-avatar" aria-hidden="true">{initials}</div>
+              <ProfilePhoto user={user} initials={initials} disabled={isEditing || saving} onBusyChange={setPhotoSaving} onSaved={profileImage => {
+                setUser(current => ({ ...current, profileImage }));
+                auth?.updateUser?.({ profileImage });
+              }} />
               <div className="mn-profile-user">
                 <h2 id="profile-user-name">{user.name}</h2>
                 {roleLabel && <span className="mn-badge mn-positive">{roleLabel}</span>}
@@ -222,7 +230,7 @@ function Profile() {
                     ))}
                   </dl>
                   <div className="mn-profile-actions">
-                    <button className="mn-button mn-primary" type="button" onClick={() => {
+                    <button className="mn-button mn-primary" type="button" disabled={photoSaving} onClick={() => {
                       setIsEditing(true);
                       setError("");
                       setSuccessMessage("");

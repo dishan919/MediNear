@@ -15,6 +15,7 @@ const {
 } = require("../middleware/authMiddleware");
 
 const router = express.Router();
+router.use(require("./profilePhotoRoutes")());
 const customer = [protect, requireRole("customer")];
 
 router.get("/profile", protect, getUserProfile);

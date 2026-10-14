@@ -10,3 +10,5 @@ build
 .vscode
 
 *.log
+# Runtime customer photo uploads (keep separate from frontend deployments)
+backend/uploads/

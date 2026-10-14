@@ -35,3 +35,13 @@
   .mn-profile-actions { flex-direction: column; margin-top: 24px; }
   .mn-profile-actions .mn-button { width: 100%; }
 }
+
+.mn-profile-photo { flex: 0 0 auto; max-width: 260px; }
+.mn-profile-avatar { overflow: hidden; }
+.mn-profile-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.mn-photo-input { display: none; }
+.mn-profile-photo-controls { margin-top: 8px; }
+.mn-profile-photo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.mn-profile-photo-actions .mn-button { font-size: 13px; }
+.mn-photo-error { color: #a52e39; }
+@media(max-width: 600px) { .mn-profile-photo .mn-profile-avatar { margin: auto; } .mn-profile-photo-actions { justify-content: center; } }

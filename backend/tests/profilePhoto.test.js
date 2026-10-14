@@ -1,0 +1,74 @@
+﻿const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+const path = require('node:path');
+const express = require('express');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const { validatePhoto, photoStorage, MAX_PHOTO_BYTES } = require('../services/profilePhotos');
+const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aE2sAAAAASUVORK5CYII=', 'base64');
+test('server image validation checks signatures, declared MIME, empty files and byte limits', () => {
+  assert.equal(validatePhoto(png, 'image/png'), 'png');
+  for (const mime of ['image/svg+xml', 'text/javascript', 'application/octet-stream']) assert.throws(() => validatePhoto(png, mime), e => e.status === 415);
+  assert.throws(() => validatePhoto(Buffer.from('<script>alert(1)</script>'), 'image/png'), e => e.status === 400);
+  assert.throws(() => validatePhoto(png, 'image/jpeg'), e => e.status === 400);
+  assert.throws(() => validatePhoto(Buffer.alloc(0), 'image/png'), e => e.status === 400);
+  assert.throws(() => validatePhoto(Buffer.alloc(MAX_PHOTO_BYTES + 1), 'image/png'), e => e.status === 413);
+});
+test('HTTP customer upload, replacement, safe static access, ownership and profile edit regression', async t => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'medinear-photo-'));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const storage = photoStorage(directory);
+  const oldSecret = process.env.JWT_SECRET; process.env.JWT_SECRET = 'photo-test-secret';
+  t.after(() => { if (oldSecret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = oldSecret; });
+  const customer = new User({ name: 'Dissa Kutty', email: 'photo@example.test', password: 'hashed-test', phone: '0771234567', address: 'Colombo', role: 'customer' });
+  const other = new User({ name: 'Other', email: 'other@example.test', password: 'hashed-test', role: 'customer' });
+  const owner = new User({ name: 'Owner', email: 'owner@example.test', password: 'hashed-test', role: 'pharmacy_owner' });
+  const accounts = new Map([customer, other, owner].map(user => [String(user._id), user]));
+  t.mock.method(User, 'findById', id => { const user = accounts.get(String(id)); return { select: async () => user, then: (resolve, reject) => Promise.resolve(user).then(resolve, reject) }; });
+  let failUpdate = false;
+  t.mock.method(User, 'findOneAndUpdate', (filter, update, options) => ({ select: async () => {
+    if (failUpdate) throw new Error('Simulated database failure');
+    assert.equal(options.returnDocument, 'before');
+    assert.equal(filter._id.toString(), customer._id.toString());
+    const previous = { profileImage: customer.profileImage }; customer.profileImage = update.$set.profileImage; return previous;
+  } }));
+  t.mock.method(customer, 'save', async () => customer);
+  const app = express(); app.use(express.json()); app.use('/api/users', require('../routes/profilePhotoRoutes')(storage)); app.use('/api/users', require('../routes/userRoutes')); app.use('/api/auth', require('../routes/authRoutes'));
+  const server = await new Promise(resolve => { const s = app.listen(0, '127.0.0.1', () => resolve(s)); });
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const origin = `http://127.0.0.1:${server.address().port}`;
+  const token = user => jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+  async function upload(body = png, mime = 'image/png', user = customer) {
+    const r = await fetch(origin + '/api/users/profile/photo', { method: 'PUT', headers: { 'Content-Type': mime, ...(user ? { Authorization: `Bearer ${token(user)}` } : {}) }, body });
+    return { status: r.status, data: await r.json() };
+  }
+  assert.equal((await upload(png, 'image/png', null)).status, 401);
+  assert.equal((await upload(png, 'image/png', owner)).status, 403);
+  assert.equal((await upload(png, 'image/svg+xml')).status, 415);
+  assert.equal((await upload(Buffer.from('not an image'))).status, 400);
+  assert.equal((await upload(Buffer.alloc(MAX_PHOTO_BYTES + 1))).status, 413);
+  assert.equal((await fs.readdir(directory)).length, 0);
+  const saved = await upload(); assert.equal(saved.status, 200); assert.equal(saved.data.profileImage, customer.profileImage);
+  assert.ok(!saved.data.profileImage.includes(directory));
+  const first = customer.profileImage;
+  const file = await fetch(origin + first); assert.equal(file.status, 200); assert.equal(file.headers.get('x-content-type-options'), 'nosniff'); assert.deepEqual(Buffer.from(await file.arrayBuffer()), png);
+  async function read(url) { return (await fetch(origin + url, { headers: { Authorization: `Bearer ${token(customer)}` } })).json(); }
+  assert.equal((await read('/api/users/profile')).user.profileImage, first);
+  assert.equal((await read('/api/auth/profile')).user.profileImage, first);
+  const second = await upload(); assert.equal(second.status, 200); assert.notEqual(second.data.profileImage, first);
+  assert.equal((await fetch(origin + first)).status, 404); assert.equal((await fs.readdir(directory)).length, 1);
+  const protectedPhoto = await storage.write(String(other._id), png, 'png');
+  await storage.remove(protectedPhoto, String(customer._id)); assert.equal((await fetch(origin + protectedPhoto)).status, 200);
+  await storage.remove('/api/users/profile-photos/../../package.json', String(customer._id));
+  await fs.writeFile(path.join(directory, 'script.js'), 'alert(1)');
+  assert.equal((await fetch(origin + '/api/users/profile-photos/script.js')).status, 404);
+  const current = customer.profileImage; failUpdate = true;
+  const log = t.mock.method(console, 'error', () => {});
+  assert.equal((await upload()).status, 500); assert.equal(customer.profileImage, current);
+  assert.equal((await fs.readdir(directory)).length, 3); failUpdate = false; log.mock.restore();
+  const edited = await fetch(origin + '/api/users/profile', { method: 'PUT', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token(customer)}` }, body: JSON.stringify({ name: 'Updated Name', phone: '0779999999', address: 'Galle' }) });
+  assert.equal(edited.status, 200); const edit = await edited.json(); assert.equal(edit.user.name, 'Updated Name'); assert.equal(edit.user.profileImage, current); assert.equal(edit.user.email, 'photo@example.test');
+});

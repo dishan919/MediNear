@@ -26,6 +26,15 @@ export function AuthProvider({ children }) {
     setUser(saveSession(localStorage, session));
   }
 
+  function updateUser(profile) {
+    setUser(current => {
+      if (!current) return current;
+      const updated = { ...current, ...profile, ...(profile.name ? { fullName: profile.name } : {}) };
+      localStorage.setItem("user", JSON.stringify(updated));
+      return updated;
+    });
+  }
+
   function logout() {
     clearSession(localStorage);
     setUser(null);
@@ -43,5 +52,5 @@ export function AuthProvider({ children }) {
     </div>
   );
 
-  return <AuthContext.Provider value={{ user, login, logout }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ user, login, logout, updateUser }}>{children}</AuthContext.Provider>;
 }

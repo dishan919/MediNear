@@ -35,6 +35,9 @@ const getUserProfile = async (req, res) => {
 const updateUserProfile = async (req, res) => {
   try {
     const { name, phone, address, profileImage } = req.body;
+    if (getUserRole(req.user) === "customer" && profileImage !== undefined) {
+      return res.status(400).json({ success: false, message: "Use the profile photo upload endpoint to change your photo." });
+    }
 
     const user = await User.findById(req.user.id);
 
