@@ -10,6 +10,7 @@ import RecentSearches from '../components/RecentSearches';
 import { getRecentSearches, clearRecentSearches, medicineSearchParams, createRecentSearchRecorder } from '../utils/recentSearches';
 import FaqSection from '../components/FaqSection';
 import SiteFooter from '../components/SiteFooter';
+import BackToTop from '../components/BackToTop';
 import AreaSelects from '../components/AreaSelects';
 import { changeProvince, geolocationMessage, requestLocation } from '../utils/locationDiscovery';
 import PharmacyCard from '../components/PharmacyCard';
@@ -105,5 +106,5 @@ export default function Home() {
     <PharmacyMap pharmacies={error || searching ? [] : filtered} location={location} selectedId={selectedId} onSelect={selectPharmacy} />
     <RecentlyViewedPharmacies />
     <FaqSection />
-  </main><SiteFooter /></div>;
+  </main><SiteFooter /><BackToTop /></div>;
 }

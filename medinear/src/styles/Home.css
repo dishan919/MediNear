@@ -1,4 +1,7 @@
 .mn-search-hero { background: #e9f3ed; padding: 44px 32px 0; border-top: 1px solid #dce9df; }
+.mn-home .mn-back-to-top { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 1100; width: 48px; height: 48px; min-height: 48px; padding: 0; border-radius: 50%; box-shadow: 0 3px 12px #173c2a33; }
+.mn-back-to-top svg { transform: rotate(-90deg); }
+.mn-home .mn-footer-inner { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
 .mn-hero-inner { display: flex; justify-content: space-between; align-items: center; max-width: 1184px; margin: 0 auto; padding-bottom: 40px; gap: 32px; }
 .mn-hero-copy h1 { color: #173c2a; font-size: clamp(40px,5.8vw,66px); letter-spacing: -2.7px; line-height: 1.06; font-weight: 750; margin-bottom: 20px; }
 .mn-hero-copy h1 span { color: #087b59; }
