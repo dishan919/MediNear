@@ -1,0 +1,29 @@
+/* Home support sections reuse the existing MediNear palette and typography. */
+.mn-faq { max-width: 960px; margin: 0 auto; padding: 32px 32px 80px; scroll-margin-top: 24px; }
+.mn-faq-heading { max-width: 620px; margin: 0 auto 32px; text-align: center; }
+.mn-faq-heading .mn-eyebrow { justify-content: center; }
+.mn-faq-heading h2 { font-size: clamp(26px, 3.5vw, 34px); letter-spacing: -.8px; line-height: 1.25; color: var(--mn-ink); margin-bottom: 12px; }
+.mn-faq-heading > p:last-child { color: var(--mn-muted); font-size: 15px; line-height: 1.7; }
+.mn-faq-list { border: 1px solid var(--mn-line); border-radius: 16px; background: #fff; }
+.mn-faq-item + .mn-faq-item { border-top: 1px solid var(--mn-line); }
+.mn-faq-question { width: 100%; min-height: 64px; display: flex; justify-content: space-between; align-items: center; gap: 20px; border: 0; background: transparent; color: var(--mn-ink); padding: 20px 24px; cursor: pointer; text-align: left; line-height: 1.5; font-weight: 700; border-radius: 9px; }
+.mn-faq-question > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.mn-faq-question:hover { background: #f0f7f3; }
+.mn-faq-question:focus-visible { outline: 3px solid #299978; outline-offset: -4px; }
+.mn-faq-indicator { display: grid; place-items: center; width: 28px; height: 28px; flex: 0 0 28px; border: 1px solid #ccdcd3; border-radius: 50%; color: var(--mn-green); font-size: 20px; font-weight: 400; }
+.mn-faq-answer { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .18s ease, opacity .18s ease; }
+.mn-faq-expanded .mn-faq-answer { grid-template-rows: 1fr; opacity: 1; }
+.mn-faq-answer-inner { min-height: 0; overflow: hidden; }
+.mn-faq-answer p { padding: 0 72px 22px 24px; color: var(--mn-muted); font-size: 14px; line-height: 1.8; overflow-wrap: anywhere; }
+.mn-site-footer { border-top: 1px solid var(--mn-line); background: #e9f3ed; }
+.mn-footer-inner { max-width: 1248px; margin: auto; padding: 44px 32px 24px; }
+.mn-footer-top { display: grid; grid-template-columns: minmax(0, 2fr) repeat(2, minmax(0, 1fr)); gap: 48px; padding-bottom: 36px; }
+.mn-footer-brand p { max-width: 280px; margin-top: 16px; color: var(--mn-muted); font-size: 14px; line-height: 1.7; }
+.mn-footer-links { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.mn-footer-links h2 { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+.mn-footer-links a { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; color: #476655; text-decoration: none; }
+.mn-footer-links a:hover { text-decoration: underline; color: var(--mn-green); }
+.mn-footer-bottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid #ccdcd3; padding-top: 24px; color: var(--mn-muted); font-size: 12px; line-height: 1.6; }
+#medicine-search { scroll-margin-top: 24px; }
+@media(max-width: 680px) { .mn-faq { padding: 24px 16px 48px; } .mn-faq-heading { margin-bottom: 24px; } .mn-faq-question { padding: 18px 16px; gap: 12px; font-size: 14px; } .mn-faq-answer p { padding: 0 16px 20px; } .mn-footer-inner { padding: 32px 20px 24px; } .mn-footer-top { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-bottom: 28px; } .mn-footer-bottom { flex-direction: column; } }
+@media(prefers-reduced-motion: reduce) { .mn-faq-answer { transition: none; } }
