@@ -1,4 +1,4 @@
-﻿// Explicit local MongoDB -> real Express APIs -> React rendering verification.
+// Explicit local MongoDB -> real Express APIs -> React rendering verification.
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -8,6 +8,7 @@ import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
+import { createRecentSearchRecorder, RECENT_SEARCHES_KEY } from '../../src/utils/recentSearches.js';
 const requireBackend = createRequire(new URL('../../../backend/package.json', import.meta.url));
 const mongoose = requireBackend('mongoose'), express = requireBackend('express'), dotenv = requireBackend('dotenv');
 const Pharmacy = requireBackend('./models/Pharmacy');
@@ -44,7 +45,12 @@ test('MongoDB medicine add/edit -> customer API -> React detail/card/table rende
     const render = element => renderToString(createElement(MemoryRouter, {}, element));
     const markup = render(createElement(PharmacyDetailsView, { pharmacy: detail.data.pharmacy }));
     for (const text of ['Integration Panadol', 'Paracetamol', 'LKR 120.00', '25 units', 'Available', '/medicine-placeholder.svg']) assert.ok(markup.includes(text), text);
+    const history = new Map();
+    const recorder = createRecentSearchRecorder({ getItem: key => history.get(key) ?? null, setItem: (key, value) => history.set(key, value) });
+    const intent = recorder.begin('INTEGRATION PANADOL');
     const searched = await request('/pharmacies/search?medicine=INTEGRATION%20PANADOL');
+    assert.deepEqual(recorder.complete(intent, 'INTEGRATION PANADOL', searched.data.success), ['INTEGRATION PANADOL']);
+    assert.deepEqual([...history.keys()], [RECENT_SEARCHES_KEY]);
     const result = searched.data.pharmacies.find(p => p._id === pharmacyId);
     assert.ok(result); assert.ok(render(createElement(Card, { pharmacy: result })).includes('25 units'));
     assert.equal((await request(`${base}/inventory/${medicineId}`, 'PATCH', { quantity: 0, price: 130, imageUrl: 'https://images.example.test/panadol.png' }, token)).status, 200);

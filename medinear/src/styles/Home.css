@@ -1,4 +1,4 @@
-﻿.mn-search-hero { background: #e9f3ed; padding: 44px 32px 0; border-top: 1px solid #dce9df; }
+.mn-search-hero { background: #e9f3ed; padding: 44px 32px 0; border-top: 1px solid #dce9df; }
 .mn-hero-inner { display: flex; justify-content: space-between; align-items: center; max-width: 1184px; margin: 0 auto; padding-bottom: 40px; gap: 32px; }
 .mn-hero-copy h1 { color: #173c2a; font-size: clamp(40px,5.8vw,66px); letter-spacing: -2.7px; line-height: 1.06; font-weight: 750; margin-bottom: 20px; }
 .mn-hero-copy h1 span { color: #087b59; }
@@ -30,3 +30,12 @@
 @media(max-width: 680px) {
  .mn-search-hero { padding: 30px 16px 0; } .mn-hero-symbol { display: none; } .mn-hero-inner { padding-bottom: 22px; } .mn-hero-copy h1 { letter-spacing: -1.8px; font-size: 42px; } .mn-hero-copy .mn-eyebrow { font-size: 9px; letter-spacing: 1px; } .mn-hero-description { font-size: 14px; } .mn-search-panel { padding: 16px; } .mn-search-form { flex-direction: column; } .mn-search-form .mn-button { width: 100%; } .mn-filter-row { gap: 8px; } .mn-filter { font-size: 11px; padding: 9px; } .mn-filter-row > .mn-text-button { margin-left: 0; } .mn-distance-filter { width: 100%; justify-content: flex-start; } .mn-distance-filter select { margin-left: auto; } .mn-results { padding: 60px 16px 28px; } .mn-results-toolbar label { width: 100%; } .mn-results-toolbar input { width: 100%; } .mn-results-toolbar p { line-height: 1.6; } .mn-site-header nav a:first-child { font-size: 0; gap: 0; } .mn-site-header nav a:first-child svg { width: 22px; height: 22px; }
 }
+
+.mn-recent-searches { margin-top: 16px; padding-top: 12px; border-top: 1px solid #dfe9e4; }
+.mn-recent-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mn-recent-heading h2 { font-size: 13px; color: #476655; }
+.mn-recent-heading .mn-text-button { font-size: 12px; }
+.mn-recent-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.mn-recent-chip { min-height: 44px; max-width: 100%; padding: 9px 14px; border: 1px solid #ccdcd3; border-radius: 24px; background: #f0f7f3; color: #234f3f; cursor: pointer; font-size: 13px; overflow-wrap: anywhere; text-align: left; }
+.mn-recent-chip:hover { background: #e6f5ed; border-color: #9dc5ac; }
+.mn-recent-searches > p { margin-top: 10px; color: #61756e; font-size: 11px; line-height: 1.6; }

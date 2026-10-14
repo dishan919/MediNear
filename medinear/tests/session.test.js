@@ -43,7 +43,7 @@ test("temporary session check failures preserve credentials for retry", async ()
   assert.equal(saved.getItem("token"), "valid");
 });
 
-test("login saves the backend session and logout removes only authentication", () => {
+test("login saves the backend session and logout removes authentication while preserving unrelated storage", () => {
   const saved = storage({ cart: "items" });
   const user = { id: "123" };
   assert.equal(saveSession(saved, { token: "issued", user }), user);

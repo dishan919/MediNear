@@ -1,6 +1,9 @@
+import { clearRecentSearches } from '../utils/recentSearches.js';
+
 export function clearSession(storage) {
   storage.removeItem("token");
   storage.removeItem("user");
+  clearRecentSearches(storage);
 }
 
 export function saveSession(storage, { token, user }) {
