@@ -94,12 +94,13 @@ test('HTTP subscriptions, restock inventory, customer notification ownership and
   assert.equal((await request(cancelPath, 'DELETE')).status, 404);
   assert.equal((await request('/restock-subscriptions', 'POST', customer, body)).status, 201);
   const inventoryPath = `/pharmacies/${pharmacy._id}/inventory/${medicine._id}`;
-  assert.equal((await request(inventoryPath, 'PATCH', owner, { quantity: 20 })).status, 200);
+  assert.equal((await request(inventoryPath, 'PATCH', owner, { quantity: 3 })).status, 200);
   assert.equal(notifications.length, 1); assert.equal(String(notifications[0].user), String(customer));
   assert.equal(notifications[0].message, 'Vitamin C is now available at Test Pharmacy');
   assert.equal(subscriptions[1].active, false); assert.ok(subscriptions[1].fulfilledAt);
   assert.equal((await request('/restock-subscriptions', 'POST', customer, body)).status, 409);
-  assert.equal((await request(inventoryPath, 'PATCH', owner, { quantity: 30 })).status, 200);
+  assert.equal((await request(inventoryPath, 'PATCH', owner, { quantity: 10 })).status, 200);
+  assert.equal(notifications.length, 1, 'Low stock to normal stock must not trigger another restock alert');
   assert.equal((await request(inventoryPath, 'PATCH', owner, { quantity: 0 })).status, 200);
   assert.equal(notifications.length, 1);
   const inbox = await request('/notifications'); assert.equal(inbox.data.unreadCount, 1);

@@ -1,4 +1,4 @@
-﻿/* Shared MediNear medicine UI, scoped away from the existing shopping demo. */
+/* Shared MediNear medicine UI, scoped away from the existing shopping demo. */
 .mn-app { --mn-ink: #17382d; --mn-muted: #61756e; --mn-green: #087b59; --mn-line: #dfe9e4; color: var(--mn-ink); background: #f5f8f6; min-height: 100vh; font-family: Arial, sans-serif; }
 .mn-app a { color: inherit; }
 .mn-app button, .mn-app input, .mn-app select { font: inherit; }
@@ -95,3 +95,5 @@
 .mn-area-filter { display: flex; flex-direction: column; gap: 6px; min-width: 140px; font-size: 13px; color: #234f3f; }
 .mn-area-filter select { min-height: 44px; max-width: 100%; padding: 9px 12px; border: 1px solid #ccdcd3; border-radius: 9px; background: #fff; color: #234f3f; }
 @media(max-width: 680px) { .mn-filter-row .mn-area-filter { flex: 1 1 140px; min-width: 0; } }
+
+.mn-warning { color: #805000; background: #fff3cf; }

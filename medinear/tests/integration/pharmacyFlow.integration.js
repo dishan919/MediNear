@@ -71,6 +71,15 @@ test('MongoDB medicine add/edit -> customer API -> React detail/card/table rende
     assert.deepEqual([...history.keys()], [RECENT_SEARCHES_KEY]);
     const result = searched.data.pharmacies.find(p => p._id === pharmacyId);
     assert.ok(result); assert.ok(render(createElement(Card, { pharmacy: result })).includes('25 units'));
+    for (const quantity of [5, 1, 3]) {
+      assert.equal((await request(`${base}/inventory/${medicineId}`, 'PATCH', { quantity }, token)).status, 200);
+      const low = (await request(base)).data.pharmacy;
+      assert.equal(low.medicines[0].availability, 'Available');
+      assert.ok(render(createElement(PharmacyDetailsView, { pharmacy: low })).includes('Low Stock'));
+      const lowSearch = (await request('/pharmacies/search?medicine=Integration%20Panadol')).data.pharmacies.find(p => p._id === pharmacyId);
+      assert.ok(lowSearch); assert.ok(render(createElement(Card, { pharmacy: lowSearch })).includes('Low Stock'));
+      assert.ok(render(createElement(Table, { medicines: (await Pharmacy.findById(pharmacyId)).inventory })).includes('Low Stock'));
+    }
     assert.equal((await request(`${base}/inventory/${medicineId}`, 'PATCH', { quantity: 0, price: 130, imageUrl: 'https://images.example.test/panadol.png' }, token)).status, 200);
     const updated = (await request(base)).data.pharmacy;
     assert.equal(updated.medicines[0].quantity, 0); assert.equal(updated.medicines[0].availability, 'Out of Stock');
