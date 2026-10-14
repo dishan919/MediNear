@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../api/api';
+import NoResultsSuggestions from '../components/NoResultsSuggestions';
+import { clearNoResultsFilters } from '../utils/noResultsSuggestions';
 import SearchResultCount from '../components/SearchResultCount';
 import { visiblePharmacyResults } from '../utils/searchResults';
 import RecentlyViewedPharmacies from '../components/RecentlyViewedPharmacies';
@@ -98,7 +100,7 @@ export default function Home() {
     </section>
     <section className="mn-results" aria-busy={searching}><div className="mn-section-header"><div><p className="mn-eyebrow">Recommended for you</p><h2>{medicine ? (params.get('includeOutOfStock') === 'true' ? 'Matching Pharmacies' : 'Available Pharmacies') : 'Explore pharmacies'}</h2><p>{medicine ? `Pharmacies with ${medicine}${params.get('includeOutOfStock') === 'true' ? ', including out-of-stock items' : ' in stock'}` : 'Find opening hours, medicine availability and directions.'}</p></div><SearchResultCount results={filtered} loading={searching} error={error} /></div>
       <div className="mn-results-toolbar"><label><Icon name="search" size={17} /><span className="mn-sr-only">Filter pharmacy or location</span><input type="search" placeholder="Filter pharmacy or location..." value={pharmacyText} onChange={e => changeParam('pharmacy', e.target.value)} /></label><p><Icon name="shield" size={16} />{params.get('sort') === 'nearest' ? 'Ranked by availability, distance and opening status' : 'Ranked by availability, opening status and distance'}</p></div>
-      {searching ? <div className="mn-empty" role="status"><Icon name="search" size={30} /><h3>Finding your pharmacies...</h3></div> : error ? <div className="mn-empty" role="alert"><h3>We couldn't load your results</h3><p>{error}</p><button className="mn-button mn-primary" onClick={() => setRetry(value => value + 1)}>Try again</button></div> : !filtered.length ? <div className="mn-empty"><Icon name="pill" size={36} /><h3>No pharmacies found</h3><p>Try another medicine or adjust your filters.</p><button className="mn-button mn-secondary" onClick={() => setParams(location ? { lat: location.lat, lng: location.lng } : {}, { replace: true })}>Clear filters</button></div> : <div className="mn-result-grid">{filtered.map(p => <PharmacyCard key={p._id} pharmacy={p} initiallyFavorite={favoriteIds.includes(p._id)} onFavoriteChange={favoriteChange} onViewMap={selectPharmacy} selected={selectedId === p._id} />)}</div>}
+      {searching ? <div className="mn-empty" role="status"><Icon name="search" size={30} /><h3>Finding your pharmacies...</h3></div> : error ? <div className="mn-empty" role="alert"><h3>We couldn't load your results</h3><p>{error}</p><button className="mn-button mn-primary" onClick={() => setRetry(value => value + 1)}>Try again</button></div> : !filtered.length ? <NoResultsSuggestions params={params} results={filtered} loading={searching} error={error} onClearFilters={() => setParams(previous => clearNoResultsFilters(previous), { replace: true })} /> : <div className="mn-result-grid">{filtered.map(p => <PharmacyCard key={p._id} pharmacy={p} initiallyFavorite={favoriteIds.includes(p._id)} onFavoriteChange={favoriteChange} onViewMap={selectPharmacy} selected={selectedId === p._id} />)}</div>}
     </section>
     <PharmacyMap pharmacies={error || searching ? [] : filtered} location={location} selectedId={selectedId} onSelect={selectPharmacy} />
     <RecentlyViewedPharmacies />

@@ -8,6 +8,7 @@ import { createServer } from 'vite';
 import { createElement } from 'react';
 import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
+import { clearNoResultsFilters } from '../../src/utils/noResultsSuggestions.js';
 import { visiblePharmacyResults, searchResultCountText } from '../../src/utils/searchResults.js';
 import { copyPharmacyAddress, displayedPharmacyAddress } from '../../src/utils/copyPharmacyAddress.js';
 import { sharePharmacy } from '../../src/utils/sharePharmacy.js';
@@ -91,6 +92,15 @@ test('MongoDB medicine add/edit -> customer API -> React detail/card/table rende
     }
     const none = await request('/pharmacies/search?medicine=Integration%20Panadol&province=Central');
     assert.equal(searchResultCountText(visiblePharmacyResults(none.data.pharmacies)), 'No pharmacies found');
+    const emptyParams = new URLSearchParams('medicine=Integration Panadol&province=Central');
+    const { default: Suggestions } = await vite.ssrLoadModule('/src/components/NoResultsSuggestions.jsx');
+    const suggestions = render(createElement(Suggestions, { params: emptyParams, results: none.data.pharmacies }));
+    assert.ok(suggestions.includes('Try another district')); assert.ok(suggestions.includes('Clear Filters'));
+    const broadened = clearNoResultsFilters(emptyParams);
+    assert.equal(broadened.get('medicine'), 'Integration Panadol');
+    const recovered = await request(`/pharmacies/search?${broadened}`);
+    assert.equal(recovered.status, 200); assert.ok(recovered.data.pharmacies.some(p => p._id === pharmacyId));
+
     assert.equal((await request(`${base}/inventory/${medicineId}`, 'PATCH', { quantity: 0, price: 130, imageUrl: 'https://images.example.test/panadol.png' }, token)).status, 200);
     const updated = (await request(base)).data.pharmacy;
     assert.equal(updated.medicines[0].quantity, 0); assert.equal(updated.medicines[0].availability, 'Out of Stock');

@@ -41,3 +41,11 @@
 .mn-recent-searches > p { margin-top: 10px; color: #61756e; font-size: 11px; line-height: 1.6; }
 
 .mn-results > .mn-section-header { flex-wrap: wrap; }
+
+.mn-no-results { padding: 24px; border: 1px dashed #cfded4; border-radius: 14px; background: white; color: #567365; }
+.mn-no-results-query { margin-bottom: 12px; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.mn-no-results h3 { font-size: 16px; color: #234b36; margin-bottom: 12px; }
+.mn-no-results ul { padding-left: 20px; font-size: 14px; line-height: 1.7; }
+.mn-no-results li + li { margin-top: 6px; }
+.mn-no-results .mn-button { margin-top: 18px; }
+@media(max-width: 680px) { .mn-no-results { padding: 18px; } }
