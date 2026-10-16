@@ -21,7 +21,7 @@ export function ReviewForm({ values, errors, busy, editing, onChange, onSubmit, 
     <div className="mn-review-actions"><button type="submit" className="mn-button mn-primary" disabled={busy}>{busy ? 'Saving Review...' : editing ? 'Save Changes' : 'Submit Review'}</button>{editing && <button type="button" className="mn-button mn-secondary" disabled={busy} onClick={onCancel}>Cancel</button>}</div>
   </form>;
 }
-function ReviewContent({ review }) {
+export function ReviewContent({ review }) {
   const date = new Date(review.createdAt);
   return <><p aria-label={`${review.rating} out of 5 stars`}><span aria-hidden="true">{'\u2605'.repeat(review.rating)}{'\u2606'.repeat(5 - review.rating)}</span></p>{review.authorName && <h4>{review.authorName}</h4>}{review.comment && <p className="mn-review-comment">{review.comment}</p>}{!Number.isNaN(date.getTime()) && <time dateTime={date.toISOString()}>{date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'Asia/Colombo' })}</time>}</>;
 }

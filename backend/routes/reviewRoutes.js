@@ -2,6 +2,7 @@ const router = require('express').Router({ mergeParams: true });
 const { protect, requireRole } = require('../middleware/authMiddleware');
 const reviews = require('../controllers/reviewController');
 const customer = [protect, requireRole('customer')];
+router.get('/owner-dashboard', protect, requireRole('pharmacy_owner'), require('../controllers/ownerReviewController').ownerReviews);
 router.get('/', reviews.listReviews);
 router.get('/mine', ...customer, reviews.ownReview);
 router.post('/', ...customer, reviews.createReview);
