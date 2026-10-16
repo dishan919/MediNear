@@ -1,271 +1,143 @@
-# MediNear
+﻿# MediNear
 
-Medicine inventory, weekly hours, location-based ranking and emergency search are now implemented. See [the implementation report](MEDICINE_FEATURES.md) for APIs, setup, migration and verification results. See [the customer and owner UI report](MEDICINE_UI_REPORT.md) for the redesigned pages, medicine image support and data-flow tests.
+MediNear is a MERN-stack pharmacy and medicine availability platform for finding medicines and discovering pharmacies by availability, opening status and distance. Pharmacy owners manage their pharmacies, inventory, medicine holds, customer reviews and inventory analytics.
 
-MediNear is a web application designed to help users find nearby pharmacies and access useful pharmacy information in one place. Its current implementation lets users browse pharmacy records, search by name or location text, filter by opening status, save favorites, and access contact and directions links.
+## Features
 
-The project aims to reduce the time spent locating a suitable pharmacy. Medicine search, explicit current-location detection, distance-based results and emergency filtering are implemented.
+### Customer Features
 
-## Key Features
+- Search medicines by name, generic name or brand, with result counts and helpful no-result suggestions.
+- Discover pharmacies using current location, province/district and distance-radius filters.
+- Compare ranked results, live opening/closing information, weekly hours and emergency/open-now or 24-hour filters.
+- Save pharmacies and subscribe to in-app restock alerts for unavailable medicines.
+- Create, edit and delete pharmacy reviews and ratings.
+- Request medicine holds, cancel pending requests and track accepted holds and pickup deadlines.
+- Revisit recent medicine searches and recently viewed pharmacies stored in the browser.
+- Call pharmacies, open WhatsApp contact links, get Google Maps directions, share pharmacy links and copy addresses.
+- Edit profile details, upload/remove a profile photo and change password.
+- Use responsive pages with toast feedback for supported actions.
 
-- **User registration and login:** React forms connected to the existing Express authentication API, with navigation between both pages and a redirect to the home page after login.
-- **Form validation:** Required fields, email format, phone number validation, password strength checks, matching password confirmation, and field-level error messages. Password fields include Show/Hide controls.
-- **Password hashing and token authentication:** bcryptjs password hashing and JWT verification for protected backend endpoints.
-- **Pharmacy browsing and search:** Database-backed pharmacy listings with client-side search by pharmacy name, address, or district.
-- **Opening-status filters:** Open Now, 24 Hour, Emergency Mode and distance-radius filters use backend-calculated hours and distance.
-- **Pharmacy contact and directions:** Phone-call links and external Google Maps links using stored coordinates.
-- **Saved pharmacies:** Database-backed favorites, including adding, removing, viewing, and clearing favorites.
-- **User profile:** View and edit name, phone number, and address through authenticated API requests.
-- **Responsive interface:** CSS layouts and media queries for pharmacy listings, authentication forms, and supporting pages.
-- **Medicine inventory:** Owner-only add/edit/delete, image URLs and customer-visible price/quantity/status. The separate cart, checkout and order history remain local shopping demonstrations.
+### Pharmacy Owner Features
 
-### Current Implementation Limits
+- Create and manage owned pharmacy profiles, locations and weekly opening hours.
+- Add, edit and delete inventory records, including quantities, prices and optional medicine image URLs.
+- Track low stock, out-of-stock medicines, expiry dates and Expiring Soon/Expired statuses.
+- Accept or reject hold requests, monitor pickup deadlines and mark accepted holds as collected.
+- View customer reviews, rating summaries and review filters in the owner dashboard.
+- View six inventory metrics: Total Medicines, Total Stock Units, Low Stock, Out of Stock, Expiring Soon and Expired.
+- Review a prioritized Needs Attention list with multiple issue badges and a link back to inventory.
+- Edit account details and change password.
 
-The pharmacy detail page reads MongoDB pharmacy IDs and live inventory through the API. Cart, checkout, and order history use browser `localStorage`; they do not submit orders to the backend or process payments. Card payment and delivery selections are form options only.
-
-Medicine results are ranked by availability, opening status and geographic distance. Opening status is calculated from stored weekly schedules and timezone; missing schedules show Hours unavailable. Embedded Google Maps requires the configured browser key; external directions links remain available.
-
-The Forgot Password link displays an availability notice. Password recovery is not implemented.
-
-## Medicine Search and Inventory
-
-- Customer medicine search supports case-insensitive partial name/generic/brand matches and available stock.
-- Smart ranking prioritizes open pharmacies, then distance, with emergency and 24-hour filters.
-- `/pharmacy/:id` shows pharmacy information, medicine cards, customer-visible quantities and prices, weekly hours and location.
-- Owners manage their own pharmacy inventory with a responsive table and Add/Edit dialog.
-- Optional HTTPS medicine image URLs use local placeholders when missing or unavailable.
-- From `backend`, run `npm run seed:pharmacies` for safe local development examples.
-- Both apps have `npm run test:integration`; the frontend integration test verifies MongoDB ? API ? React rendering.
-
-## System Architecture
-
-MediNear uses a **client-server architecture**. The React frontend communicates with the Node.js/Express backend through JSON REST APIs using Axios. The backend separates routes, controllers, authentication middleware, validation utilities, and Mongoose models. MongoDB stores users, pharmacies, and user favorites.
-
-```text
-User
-  |
-React Frontend (Vite + React Router)
-  |
-JSON REST API (Axios over HTTP)
-  |
-Node.js / Express Backend
-  |-- Routes and authentication middleware
-  |-- Controllers and validation utilities
-  |-- Mongoose models
-  |
-MongoDB
-```
-
-The cart and order demonstration follows a separate path: React reads and writes browser `localStorage`. The backend `Order.js` model and `orderRoutes.js` files are empty, and order routes are not mounted.
-
-### Existing API Areas
-
-| API area | Implemented behavior |
-| --- | --- |
-| `/api/auth` | Registration, login, and authenticated profile retrieval |
-| `/api/users` | Authenticated profile retrieval/update and favorite management |
-| `/api/pharmacies` | Pharmacy listing, lookup by ID, creation, update, and deletion |
-
-Pharmacy write endpoints currently have no authentication or role checks. Their existence does not constitute a completed pharmacy-owner or administrator workflow.
-
-## Technologies Used
+## Tech Stack
 
 | Area | Technologies |
 | --- | --- |
-| Frontend | React 19, JavaScript/JSX, React DOM, CSS |
-| Frontend tooling | Vite 8, React Vite plugin, Oxlint |
-| Routing | React Router DOM 7 with `BrowserRouter`, `Routes`, and route guards |
-| HTTP client | Axios |
-| Backend | Node.js, Express 5, CommonJS modules |
-| Database | MongoDB and Mongoose 9 |
-| Authentication | bcryptjs and jsonwebtoken (JWT) |
-| Backend configuration | dotenv and cors |
-| Development server | nodemon |
-| Tests | Node.js built-in test runner, assertions, mocks, and React server rendering |
+| Frontend | React 19, Vite 8, React Router 7, Axios, CSS, Google Maps JavaScript API |
+| Backend | Node.js, Express 5, Mongoose 9 |
+| Database | MongoDB |
+| Authentication | JWT, bcryptjs, role and ownership authorization |
+| Testing and tooling | Node.js test runner, React server rendering, Oxlint, nodemon |
 
-Leaflet and React Leaflet are installed dependencies, but the current application does not use them to render a map. Directions currently open Google Maps in a separate browser tab.
-
-## Project Structure
+## Architecture
 
 ```text
-MediNear/
-|-- backend/
-|   |-- config/             # MongoDB connection
-|   |-- controllers/        # Authentication, users, and pharmacies
-|   |-- middleware/         # JWT verification
-|   |-- models/             # User and Pharmacy; Order placeholder
-|   |-- routes/             # API routes; order route placeholder
-|   |-- tests/              # Authentication controller tests
-|   |-- utils/              # Server-side auth validation
-|   |-- package.json
-|   `-- server.js
-|-- medinear/
-|   |-- public/
-|   |-- src/
-|   |   |-- api/            # Axios client
-|   |   |-- assets/
-|   |   |-- components/     # Auth fields/layout, route guard, cards, navigation
-|   |   |-- pages/          # Auth, home, favorites, profile, and shopping pages
-|   |   |-- styles/
-|   |   |-- utils/          # Frontend auth validation
-|   |   |-- App.jsx         # Application routes
-|   |   |-- index.css
-|   |   `-- main.jsx
-|   |-- tests/              # Validation and rendered-page tests
-|   |-- package.json
-|   `-- vite.config.js
-|-- AUTH_IMPLEMENTATION.md
-|-- package.json            # Separate root dependency manifest
-`-- README.md
+Customer / Pharmacy Owner → React UI → Express REST API → MongoDB
 ```
 
-The local checkout may be named `Medi`; cloning the repository normally creates a directory named `MediNear`. Install and run the application from its `backend/` and `medinear/` directories.
+React handles role-specific pages and Axios requests. Express routes use JWT middleware, role checks and ownership checks to protect customer and owner workflows. MongoDB stores users, pharmacies with embedded inventory, reviews, holds, restock subscriptions and notifications. Shared utilities keep stock, expiry and opening-hours rules consistent between the API and UI.
 
-## Installation and Setup
+### Smart Pharmacy Ranking
 
-### 1. Prerequisites and Clone
+Default medicine results prioritize availability, then opening status (open, unknown, closed), then distance. Nearest sorting keeps availability first, followed by distance and opening status. Name and ID provide deterministic tie-breaks; unavailable distances sort last within the relevant group. Emergency mode filters to currently open pharmacies; the separate 24-hour filter selects 24-hour pharmacies.
 
-Use Node.js compatible with the installed tooling: Node.js 20.19+ within the 20.x release line, or Node.js 22.12+ and newer compatible releases. Install npm and provide a running local MongoDB instance or a MongoDB connection string.
+### Medicine Holds
+
+A customer submits a pending request without deducting stock. Owner acceptance reserves stock and sets a 24-hour pickup deadline; the owner can then mark it collected. Expired accepted holds restore reserved stock through the normal hold workflows. Transaction-sensitive hold operations and restock updates require MongoDB Atlas or a replica set; standalone MongoDB cannot exercise the complete workflow.
+
+### Medicine Expiry and Analytics
+
+Owners can set optional expiry dates. Expiring Soon uses the shared inclusive 30-day window, and medicines remain valid through their expiry day in Sri Lankan time. Expired inventory is excluded from customer availability. Owner analytics are read-only: stock and expiry issues may overlap, and the top ten attention items prioritize expired, out-of-stock, expiring-soon and low-stock medicines.
+
+## Getting Started
+
+Use Node.js 22.12+ with compatible npm and a running MongoDB instance. Use a local replica set for the complete development/test workflow, or Atlas for application use.
+
+### Clone and Install
 
 ```bash
 git clone https://github.com/dishan919/MediNear.git
 cd MediNear
-```
-
-### 2. Install Dependencies
-
-Install backend dependencies:
-
-```bash
 cd backend
 npm ci
-cd ..
-```
-
-Install frontend dependencies:
-
-```bash
-cd medinear
+cd ../medinear
 npm ci
 cd ..
 ```
 
-### 3. Configure Environment Variables
+### Environment
 
-Create `backend/.env`:
+Create `backend/.env` with your own values:
 
 ```dotenv
 MONGO_URI=mongodb://127.0.0.1:27017/medinear
 JWT_SECRET=replace_with_a_long_random_secret
-```
-
-`MONGO_URI` and `JWT_SECRET` are required for the database and token authentication. Optional settings supported by the backend are:
-
-```dotenv
 PORT=5000
 JWT_EXPIRES_IN=7d
 ```
 
-The backend defaults to port `5000` and a JWT expiry of `7d` when these optional values are omitted. Replace example values with your own local configuration. Never commit real credentials or secrets; `.env` files are excluded by the repository's `.gitignore`.
+For a replica set, use its connection string, including the appropriate `replicaSet` option. `PORT` and `JWT_EXPIRES_IN` are optional with the defaults shown. Optional `PROFILE_PHOTO_DIR` overrides the backend's local photo storage directory; keep this directory persistent when hosting.
 
-The frontend defaults to `http://localhost:5000/api`. If the backend address or port differs, create `medinear/.env`:
+The frontend defaults to `http://localhost:5000/api`. Create `medinear/.env` if overriding it or enabling the embedded map:
 
 ```dotenv
 VITE_API_URL=http://localhost:5000/api
+VITE_GOOGLE_MAPS_API_KEY=your_browser_maps_key
 ```
 
-`VITE_API_URL` is optional and must include the `/api` suffix. Vite exposes frontend environment values to the browser, so do not put secrets in them. Restart the frontend after changing its environment file.
+`VITE_GOOGLE_MAPS_MAP_ID` is also optional. Without a Maps key, external directions links remain available. Frontend variables are browser-visible; restrict the Maps key appropriately and never put private secrets in `VITE_*` values. Keep real environment files out of version control and restart the apps after changes.
 
-### 4. Start the Backend
+### Run Locally
 
-In a terminal at the repository root:
+In one terminal:
 
 ```bash
 cd backend
 npm run dev
 ```
 
-Use `npm start` to run without nodemon. The default API base is `http://localhost:5000/api`; `http://localhost:5000/` returns an API status message. The backend exits if its MongoDB connection fails.
-
-### 5. Start the Frontend
-
-In a second terminal at the repository root:
+In a second terminal:
 
 ```bash
 cd medinear
 npm run dev
 ```
 
-Open the URL printed by Vite, normally:
+Open the Vite URL, normally `http://localhost:5173`. The API defaults to `http://localhost:5000/api`. Register as a customer or pharmacy owner; owners use `/pharmacy/dashboard` and customers use `/`.
 
-- Login: `http://localhost:5173/login`
-- Register: `http://localhost:5173/register`
-- Main/home page: `http://localhost:5173/`
-
-Vite may choose another port if `5173` is occupied. Register an account, then log in to access the protected pages. An existing stored token redirects Login/Register visits to Home; use a private browser window to inspect the login page with a fresh session.
-
-From `backend`, run `npm run seed:pharmacies` to create safe local development pharmacies and medicine inventory. It refuses production/remote databases and preserves existing values on repeat runs. All pharmacy-detail data comes from MongoDB/API records.
-
-## Authentication
-
-- **Registration:** Collects full name, email, phone, password, and confirmation. The frontend sends name, normalized email, phone, and password to `POST /api/auth/register`. After success, it returns to Login with a success message.
-- **Validation:** Frontend and backend validate required registration inputs, email format, phone numbers with 9–15 digits, and passwords containing at least eight characters with uppercase, lowercase, and a number. Registration rejects passwords over 72 UTF-8 bytes. Matching confirmation is checked by the frontend. Login validates email and requires a password while allowing older accounts to retain their existing password rules.
-- **Password storage:** The backend hashes passwords with bcryptjs using cost factor 10 and compares hashes during login. Passwords are not saved in frontend storage.
-- **Login:** `POST /api/auth/login` returns a JWT and user information. The frontend stores them under `token` and `user` in `localStorage`, then navigates to `/`.
-- **Route protection:** The frontend checks for a stored token. Backend middleware verifies the JWT, checks expiry, loads the user, and excludes the password from the authenticated user object. Protected requests send `Authorization: Bearer <token>`.
-- **Recovery:** Password-reset endpoints, reset tokens, and email delivery are not implemented.
+For optional local sample accounts and pharmacies, run `npm run seed` and `npm run seed:pharmacies` from `backend/`. These scripts reject production/remote databases and preserve existing seeded records on repeat runs. See [the seed script](backend/scripts/seed.js) for development account credentials.
 
 ## Testing
 
-Neither application package defines an `npm test` script. Existing tests run directly with Node.js after installing dependencies.
-
-From the repository root, run frontend validation and backend authentication tests:
+Run these commands separately from **each** application directory (`backend/` and `medinear/`):
 
 ```bash
-node --test medinear/tests/authValidation.test.js backend/tests/auth.test.js
-```
-
-From `medinear/`, run the rendered authentication-page test:
-
-```bash
-node --test tests/authPages.test.js
-```
-
-The tests cover validation, authentication page markup and reciprocal links, password hashing, invalid credentials, JWT verification, and duplicate email handling. Backend tests mock database operations while using real bcrypt and JWT libraries; they do not verify live MongoDB persistence. Rendered-page tests do not replace browser interaction or responsive visual testing.
-
-For frontend linting and a production build, run from `medinear/`:
-
-```bash
+npm test
+npm run test:integration
 npm run lint
-npm run build
 ```
 
-## Future Improvements
+Integration tests require a running local development MongoDB database configured through `backend/.env`; seed local examples first for the frontend pharmacy-flow test. Use a local replica set for full transaction coverage: some transaction tests skip on standalone MongoDB. Use a dedicated development database, not production data. Frontend production build: `cd medinear` then `npm run build`.
 
-- Backend-connected medicine availability search and inventory management.
-- Smart pharmacy ranking using availability, distance, and opening status.
-- A dedicated emergency/24-hour mode with location-aware results.
-- Browser geolocation, integrated maps, and distance calculation.
-- Pharmacy-owner workflows and authorization for pharmacy management.
-- Connect pharmacy details to database records instead of numeric sample IDs.
-- Backend order persistence and real payment/delivery integrations.
-- Notifications for relevant pharmacy, inventory, or order updates.
-- Secure password recovery with expiring, single-use reset tokens and email delivery.
-- Broader browser and database integration tests.
-- Improved session expiry handling, restricted CORS, and authentication rate limiting.
+## Deployment
 
-## Security
+Build the frontend with `npm run build` in `medinear/` and serve `medinear/dist` with SPA fallback routing. Run the backend with `npm start` in `backend/`, configure its database/JWT environment and set `VITE_API_URL` before building the frontend. Use transaction-capable MongoDB and persistent profile-photo storage. This repository does not include an automated deployment configuration or verify a live deployment.
 
-Implemented practices include bcrypt password hashing, registration/login input validation, normalized unique email addresses, signed expiring JWTs, server-side authentication middleware, and environment-based secret configuration. Auth/profile responses exclude password hashes, and external directions links use `noopener,noreferrer`.
+## Current Scope and Documentation
 
-Current limitations should be addressed before production use: JWTs are stored in JavaScript-accessible `localStorage`, frontend guards only check token presence, CORS is unrestricted, and pharmacy create/update/delete endpoints have no authentication or role enforcement. Rate limiting, email verification, token refresh/revocation, and password recovery are not implemented.
+Cart, checkout and order history are browser-local demonstrations; they do not submit backend orders or process payments. Change Password is implemented for signed-in users; forgotten-password recovery is not implemented. Restock alerts are in-app notifications, not email or SMS.
+
+Detailed feature and validation reports are in [docs/](docs/), including [medicine holds](docs/MEDICINE_HOLD_REQUESTS.md), [pickup deadlines](docs/HOLD_EXPIRATION.md), [expiry tracking](docs/MEDICINE_EXPIRY_TRACKING.md) and [inventory analytics](docs/OWNER_INVENTORY_ANALYTICS.md).
 
 ## Author
 
-Developed by Dishan
-
-GitHub: [dishan919](https://github.com/dishan919)
-
-## Repository
-
-[MediNear on GitHub](https://github.com/dishan919/MediNear)
+Developed by Dishan — [dishan919](https://github.com/dishan919) · [GitHub Repository](https://github.com/dishan919/MediNear)
