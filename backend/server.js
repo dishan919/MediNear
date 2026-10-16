@@ -22,6 +22,7 @@ app.get("/", (req, res) => {
   });
 });
 
+app.use("/api", require("./routes/holdRoutes"));
 app.use("/api/auth", authRoutes);
 app.use("/api/pharmacies", pharmacyRoutes);
 app.use("/api/users", userRoutes);

@@ -1,0 +1,15 @@
+.mn-holds { margin-top: 28px; padding-top: 24px; border-top: 1px solid #dce7df; min-width: 0; }
+.mn-holds h2 { margin-bottom: 16px; }
+.mn-hold-list { list-style: none; padding: 0; }
+.mn-hold-list li { padding: 18px 0; border-bottom: 1px solid #dce7df; }
+.mn-hold-list p, .mn-hold-feedback p { margin: 8px 0; }
+.mn-hold-list h3, .mn-hold-list p { overflow-wrap: anywhere; }
+.mn-hold-list time { color: #61756e; font-size: 12px; }
+.mn-hold-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 12px; }
+.mn-hold-form { margin-top: 14px; font-size: 13px; }
+.mn-hold-form label { display: block; margin-bottom: 8px; overflow-wrap: anywhere; }
+.mn-hold-form input { display: block; width: 100%; max-width: 140px; min-height: 44px; padding: 10px; border: 1px solid #ccdcd3; border-radius: 8px; }
+.mn-hold-form p { margin-top: 8px; line-height: 1.5; }
+.mn-hold-actions .mn-button { max-width: 100%; white-space: normal; }
+.mn-hold-feedback { margin-top: 12px; font-size: 13px; overflow-wrap: anywhere; }
+@media(max-width: 600px) { .mn-hold-actions .mn-button { flex: 1 1 130px; } }

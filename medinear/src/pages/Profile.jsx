@@ -1,3 +1,4 @@
+import HoldRequests from '../components/HoldRequests';
 import ChangePassword from '../components/ChangePassword';
 import { useEffect, useState } from "react";
 import api from "../api/api";
@@ -272,6 +273,7 @@ function Profile() {
               )}
             </section>
             <ChangePassword />
+            {user.role === 'customer' && <HoldRequests />}
           </section>
         )}
       </div>
