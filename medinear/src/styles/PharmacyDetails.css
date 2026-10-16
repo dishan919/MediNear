@@ -43,3 +43,6 @@
 .mn-copy-address p { font-size: 12px; line-height: 1.6; color: #61756e; overflow-wrap: anywhere; }
 .mn-copy-address p[role=alert] { color: #a12b38; }
 @media(max-width: 680px) { .mn-detail-address-row { flex-direction: column; gap: 0; } .mn-copy-address { margin-top: 0; } }
+
+/* Allow the longer contact label to shrink and wrap within the existing action row. */
+.mn-detail-actions .mn-whatsapp-contact { min-width: 0; max-width: 100%; text-align: center; overflow-wrap: anywhere; }

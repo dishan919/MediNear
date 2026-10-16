@@ -64,6 +64,13 @@ test('MongoDB medicine add/edit -> customer API -> React detail/card/table rende
     const { default: Table } = await vite.ssrLoadModule('/src/components/InventoryTable.jsx');
     const render = element => renderToString(createElement(MemoryRouter, {}, element));
     const markup = render(createElement(PharmacyDetailsView, { pharmacy: detail.data.pharmacy }));
+    // The existing business contact travels through owner creation/API/detail rendering unchanged.
+    assert.equal(detail.data.pharmacy.phone, '0111234567');
+    assert.ok(markup.includes('href="https://wa.me/94111234567"'));
+    assert.ok(markup.includes('aria-label="Contact pharmacy on WhatsApp"'));
+    assert.ok(markup.includes('href="tel:0111234567"'));
+    assert.ok(markup.includes('Share '));
+
     for (const text of ['Integration Panadol', 'Paracetamol', 'LKR 120.00', '25 units', 'Available', '/medicine-placeholder.svg']) assert.ok(markup.includes(text), text);
     const history = new Map();
     const recorder = createRecentSearchRecorder({ getItem: key => history.get(key) ?? null, setItem: (key, value) => history.set(key, value) });
