@@ -20,6 +20,7 @@ const customer = [protect, requireRole("customer")];
 
 router.get("/profile", protect, getUserProfile);
 router.put("/profile", protect, updateUserProfile);
+router.patch("/password", protect, require("../controllers/passwordController").changePassword);
 
 router.get("/favorites", ...customer, getFavorites);
 

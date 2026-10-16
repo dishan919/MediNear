@@ -15,14 +15,20 @@ function validateAuth(body = {}, register = false) {
     else if (!/^\+?[\d\s().-]+$/.test(phone.trim()) || !/^\d{9,15}$/.test(phone.replace(/\D/g, ""))) {
       errors.phone = "Enter a phone number with 9–15 digits.";
     }
-    if (typeof password === "string" && password && (password.length < 8 ||
-      Buffer.byteLength(password, "utf8") > 72 || !/[a-z]/.test(password) ||
-      !/[A-Z]/.test(password) || !/[0-9]/.test(password))) {
-      errors.password = "Use at least 8 characters with uppercase, lowercase and a number (maximum 72 bytes).";
-    }
+    const passwordError = validatePassword(password);
+    if (passwordError) errors.password = passwordError;
   }
   return errors;
 }
 
-module.exports = { validateAuth };
+function validatePassword(password) {
+  if (typeof password !== "string" || !password) return "Password is required.";
+  if (password.length < 8 || Buffer.byteLength(password, "utf8") > 72 ||
+      !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+    return "Use at least 8 characters with uppercase, lowercase and a number (maximum 72 bytes).";
+  }
+  return "";
+}
+
+module.exports = { validateAuth, validatePassword };
 

@@ -21,16 +21,21 @@ export function validateRegister(values) {
     !/^\d{9,15}$/.test(values.phone.replace(/\D/g, ""))) {
     errors.phone = "Enter a phone number with 9–15 digits, such as +94 77 123 4567.";
   }
-  if (values.password && (values.password.length < 8 ||
-    new TextEncoder().encode(values.password).length > 72 ||
-    !/[a-z]/.test(values.password) || !/[A-Z]/.test(values.password) ||
-    !/[0-9]/.test(values.password))) {
-    errors.password = "Use at least 8 characters with uppercase, lowercase and a number (maximum 72 bytes).";
-  }
+  const passwordError = validatePassword(values.password);
+  if (passwordError) errors.password = passwordError;
   if (!values.confirmPassword) {
     errors.confirmPassword = "Please confirm your password.";
   } else if (values.password !== values.confirmPassword) {
     errors.confirmPassword = "Passwords do not match.";
   }
   return errors;
+}
+
+export function validatePassword(password) {
+  if (typeof password !== "string" || !password) return "Password is required.";
+  if (password.length < 8 || new TextEncoder().encode(password).length > 72 ||
+      !/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password)) {
+    return "Use at least 8 characters with uppercase, lowercase and a number (maximum 72 bytes).";
+  }
+  return "";
 }

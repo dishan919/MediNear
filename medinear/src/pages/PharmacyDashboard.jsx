@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
 import api from '../api/api';
 import AreaSelects from '../components/AreaSelects';
@@ -55,7 +56,7 @@ export default function PharmacyDashboard() {
   }
   const medicines = filterMedicines(current?.inventory || [], query);
   const availableCount = (current?.inventory || []).filter(m => m.quantity > 0).length;
-  return <main className="mn-app mn-owner"><div className="mn-owner-inner"><header className="mn-owner-header"><div><p className="mn-eyebrow"><Icon name="cross" size={16} />MediNear · Pharmacy Owner Dashboard</p><h1>Your pharmacy, in good hands.</h1><p>Welcome, {user.fullName || user.name}. Keep your medicines and opening hours up to date.</p></div><span className="mn-owner-label"><Icon name="shield" size={17} />Owner workspace</span></header>
+  return <main className="mn-app mn-owner"><div className="mn-owner-inner"><header className="mn-owner-header"><div><p className="mn-eyebrow"><Icon name="cross" size={16} />MediNear · Pharmacy Owner Dashboard</p><h1>Your pharmacy, in good hands.</h1><p>Welcome, {user.fullName || user.name}. Keep your medicines and opening hours up to date.</p></div><Link className="mn-text-button" to="/profile">My Profile</Link><span className="mn-owner-label"><Icon name="shield" size={17} />Owner workspace</span></header>
     {notice && <div className={`mn-notice ${notice.error ? 'mn-notice-error' : ''}`} role={notice.error ? 'alert' : 'status'}>{notice.text}{notice.error && !current && <button className="mn-text-button" onClick={() => perform(() => load())}>Try again</button>}</div>}
     <div className="mn-owner-selector"><label>Your pharmacy<select value={selected} disabled={busy || loading} onChange={e => { setSelected(e.target.value); setQuery(''); setNotice(null); if (!e.target.value) setTab('profile'); }}><option value="">Create a pharmacy</option>{pharmacies.map(p => <option value={p._id} key={p._id}>{p.name}</option>)}</select></label>{current && <p><Icon name="pin" size={17} />{current.address}</p>}</div>
     {loading ? <div className="mn-empty" role="status"><h2>Loading your workspace...</h2></div> : <>

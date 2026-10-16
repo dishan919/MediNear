@@ -1,3 +1,4 @@
+import ChangePassword from '../components/ChangePassword';
 import { useEffect, useState } from "react";
 import api from "../api/api";
 import ProfilePhoto from "../components/ProfilePhoto";
@@ -270,6 +271,7 @@ function Profile() {
                 </form>
               )}
             </section>
+            <ChangePassword />
           </section>
         )}
       </div>

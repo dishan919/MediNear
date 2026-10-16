@@ -49,3 +49,7 @@
 .mn-profile-photo-controls > .mn-danger { margin-left: 8px; font-size: 13px; }
 .mn-photo-confirmation { margin-top: 12px; padding: 14px; border: 1px solid #e9cdd1; border-radius: 9px; font-size: 14px; line-height: 1.5; }
 @media(max-width: 600px) { .mn-profile-photo-controls > .mn-danger { margin-left: 0; } }
+
+.mn-change-password { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--mn-line); }
+.mn-change-password .auth-password input { padding-right: 76px; }
+.mn-change-password .form-group label { display: block; margin-bottom: 8px; }

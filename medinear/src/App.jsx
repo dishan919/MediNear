@@ -59,11 +59,6 @@ function App() {
             />
 
             <Route
-              path="/profile"
-              element={<Profile />}
-            />
-
-            <Route
               path="/cart"
               element={<Cart />}
             />
@@ -82,6 +77,10 @@ function App() {
               path="/order-success/:orderId"
               element={<OrderSuccess />}
             />
+          </Route>
+
+          <Route element={<ProtectedRoute />}>
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           <Route element={<ProtectedRoute role="pharmacy_owner" />}>
