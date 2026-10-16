@@ -41,6 +41,18 @@ test('hold UI service -> real API/database -> customer/owner views and existing 
       await assert.rejects(owner.action(String(pharmacy._id), hold._id, 'accept'), e => e.response.status === 503); assert.equal((await Pharmacy.findById(pharmacy._id)).inventory[0].quantity, 5);
       await customer.action(null, hold._id, 'cancel'); assert.match(render(await customer.list(null, 1)), /Cancelled/);
     }
+    if (await require('./services/databaseCapabilities').supportsTransactions()) {
+      const { HOLD_DURATION_MS } = require('./services/holdPolicy');
+      const now = Date.now();
+      await Hold.updateOne({ _id: hold._id }, { $set: { acceptedAt: new Date(now - HOLD_DURATION_MS - 1000), expiresAt: new Date(now - 1000) } });
+      const expired = render(await customer.list(null, 1)); assert.match(expired, /Expired/); assert.match(expired, /Hold expired before pickup/); assert.doesNotMatch(expired, /Pickup by/);
+      assert.equal((await Pharmacy.findById(pharmacy._id)).inventory[0].quantity, 5); await customer.list(null, 1); assert.equal((await Pharmacy.findById(pharmacy._id)).inventory[0].quantity, 5);
+      const pickup = await customer.create(String(pharmacy._id), String(pharmacy.inventory[0]._id), 2);
+      const confirmed = await owner.action(String(pharmacy._id), pickup._id, 'accept'); assert.ok(confirmed.acceptedAt); assert.ok(confirmed.expiresAt);
+      const ownerCard = render(await owner.list(String(pharmacy._id), 1), true); assert.match(ownerCard, /Pickup by/); assert.match(ownerCard, /Mark as Collected/);
+      await owner.action(String(pharmacy._id), pickup._id, 'complete'); const collected = render(await customer.list(null, 1)); assert.match(collected, /Collected/); assert.match(collected, /Picked up successfully/);
+      await require('./services/holds').expireDueHolds({ pharmacy: pharmacy._id }, new Date(Date.parse(confirmed.expiresAt) + 1)); assert.equal((await Pharmacy.findById(pharmacy._id)).inventory[0].quantity, 3);
+    }
     const next = await customer.create(String(pharmacy._id), String(pharmacy.inventory[0]._id), 1); await owner.action(String(pharmacy._id), next._id, 'reject'); assert.match(render(await customer.list(null, 1)), /Rejected/);
   } finally { if (vite) await vite.close(); if (pharmacy) { await Hold.deleteMany({ pharmacy: pharmacy._id }); await Pharmacy.deleteOne({ _id: pharmacy._id }); } if (users.length) await User.deleteMany({ _id: { $in: users.map(u => u._id) } }); if (server) await new Promise(resolve => server.close(resolve)); await mongoose.disconnect(); }
 });

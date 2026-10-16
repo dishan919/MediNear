@@ -6,7 +6,7 @@ import { renderToString } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
 import { readFileSync } from 'node:fs';
 import { quantityError, holdService, createHoldRunner, holdToast, HOLD_STATUSES } from '../src/utils/holds.js';
-const requests = ['pending', 'accepted', 'rejected', 'cancelled'].map((status, i) => ({ _id: String(i), quantity: 2, status, medicineName: 'Panadol', pharmacyName: 'City Pharmacy', customerName: 'Dissa', createdAt: '2026-10-16T00:00:00Z' }));
+const requests = ['pending', 'accepted', 'rejected', 'cancelled', 'expired', 'completed'].map((status, i) => ({ _id: String(i), quantity: 2, status, medicineName: 'Panadol', pharmacyName: 'City Pharmacy', customerName: 'Dissa', createdAt: '2026-10-16T00:00:00Z' }));
 const buttons = node => !node || typeof node !== 'object' ? [] : node.type === 'button' ? [node] : [node.props?.children].flat(Infinity).flatMap(buttons);
 test('quantity validation and exact toast/status wording do not treat pending as reserved', () => {
   for (const value of ['', 'x', '0', '-1', '1.5', 6, Infinity, Number.MAX_SAFE_INTEGER + 1]) assert.ok(quantityError(value, 5));

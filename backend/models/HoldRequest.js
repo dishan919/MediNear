@@ -4,9 +4,14 @@ const holdSchema = new mongoose.Schema({
   pharmacy: { type: mongoose.Schema.Types.ObjectId, ref: 'Pharmacy', required: true, immutable: true },
   medicine: { type: mongoose.Schema.Types.ObjectId, required: true, immutable: true },
   quantity: { type: Number, required: true, min: 1, validate: Number.isSafeInteger, immutable: true },
-  status: { type: String, enum: ['pending', 'accepted', 'rejected', 'cancelled'], default: 'pending', required: true },
+  status: { type: String, enum: ['pending', 'accepted', 'rejected', 'cancelled', 'completed', 'expired'], default: 'pending', required: true },
+  acceptedAt: Date,
+  expiresAt: Date,
+  completedAt: Date,
+  expiredAt: Date,
 }, { timestamps: true });
 holdSchema.index({ customer: 1, pharmacy: 1, medicine: 1 }, { unique: true, partialFilterExpression: { status: 'pending' } });
 holdSchema.index({ customer: 1, createdAt: -1, _id: -1 });
 holdSchema.index({ pharmacy: 1, createdAt: -1, _id: -1 });
+holdSchema.index({ status: 1, expiresAt: 1 });
 module.exports = mongoose.model('HoldRequest', holdSchema);

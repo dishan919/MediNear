@@ -6,5 +6,5 @@ router.post('/pharmacies/:id/hold-requests', ...customer, holds.create);
 router.get('/users/hold-requests', ...customer, holds.mine);
 router.patch('/users/hold-requests/:requestId/cancel', ...customer, holds.cancel);
 router.get('/pharmacies/:id/hold-requests', ...owner, holds.ownerList);
-for (const action of ['accept', 'reject']) router.patch(`/pharmacies/:id/hold-requests/:requestId/${action}`, ...owner, (req, res) => { req.params.action = action; return holds.ownerAction(req, res); });
+for (const action of ['accept', 'reject', 'complete']) router.patch(`/pharmacies/:id/hold-requests/:requestId/${action}`, ...owner, (req, res) => { req.params.action = action; return holds.ownerAction(req, res); });
 module.exports = router;

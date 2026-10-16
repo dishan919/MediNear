@@ -13,3 +13,5 @@
 .mn-hold-actions .mn-button { max-width: 100%; white-space: normal; }
 .mn-hold-feedback { margin-top: 12px; font-size: 13px; overflow-wrap: anywhere; }
 @media(max-width: 600px) { .mn-hold-actions .mn-button { flex: 1 1 130px; } }
+
+.mn-hold-deadline { margin-top: 10px; overflow-wrap: anywhere; line-height: 1.6; }
