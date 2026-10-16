@@ -1,3 +1,4 @@
+const { isMedicineUsable } = require('../../shared/medicineExpiry.mjs');
 const mongoose = require('mongoose');
 const Pharmacy = require('../models/Pharmacy');
 const HoldRequest = require('../models/HoldRequest');
@@ -23,6 +24,7 @@ async function create(req, res) {
     if (!pharmacy) throw problem(404, 'Pharmacy not found.');
     const medicine = pharmacy.inventory.id(medicineId);
     if (!medicine) throw problem(404, 'Medicine not found at this pharmacy.');
+    if (!isMedicineUsable(medicine)) throw problem(409, 'Medicine is expired or its expiry is invalid. A hold cannot be requested.');
     if (!Number.isSafeInteger(medicine.quantity) || medicine.quantity < quantity) throw problem(409, 'Requested quantity exceeds current available stock.');
     const hold = await HoldRequest.create({ customer: req.user._id, pharmacy: pharmacyId, medicine: medicineId, quantity, status: 'pending' });
     res.status(201).json({ success: true, request: safeHold(hold), serverNow: new Date() });

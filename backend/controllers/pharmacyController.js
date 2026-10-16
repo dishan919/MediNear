@@ -1,3 +1,4 @@
+const { isMedicineUsable } = require('../../shared/medicineExpiry.mjs');
 const mongoose = require('mongoose');
 const Pharmacy = require('../models/Pharmacy');
 const { isRestock, fulfillRestock } = require('../services/restock');
@@ -61,7 +62,7 @@ async function getPharmacyById(req, res) {
       if (typeof req.query.lat !== 'string' || typeof req.query.lng !== 'string' || req.query.lat.trim() === '' || req.query.lng.trim() === '' || !validCoordinates(Number(req.query.lat), Number(req.query.lng))) throw invalid('Valid latitude and longitude required together');
       distance = distanceKm(Number(req.query.lat), Number(req.query.lng), p.latitude, p.longitude);
     }
-    res.json({ success: true, pharmacy: { ...publicPharmacy(p), distance, medicines: (p.inventory || []).map(publicMedicine) } });
+    res.json({ success: true, pharmacy: { ...publicPharmacy(p), distance, medicines: (p.inventory || []).filter(m => isMedicineUsable(m)).map(m => publicMedicine(m)) } });
   } catch (e) { fail(res, e); }
 }
 async function getOwnedPharmacies(req, res) {
@@ -97,7 +98,7 @@ async function inventory(req, res) {
     else {
       let data;
       try { data = validateMedicine(req.method === 'PATCH' ? { ...medicine.toObject(), ...req.body } : req.body); } catch (e) { throw invalid(e.message); }
-      restocked = medicine && isRestock(medicine.quantity, data.quantity);
+      restocked = medicine && isRestock(medicine.quantity, data.quantity) && isMedicineUsable(data);
       if (medicine) medicine.set({ ...data, price: data.price }); else p.inventory.push(data);
     }
     if (restocked) {

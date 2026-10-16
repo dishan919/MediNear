@@ -1,4 +1,6 @@
-import { useEffect, useId, useState } from 'react';
+import { isMedicineAvailable } from '../../../shared/medicineExpiry.mjs';
+import { pharmacyClock } from '../utils/pharmacyClock';
+import { useEffect, useId, useState, useSyncExternalStore } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { getUserRole } from '../auth/roles';
@@ -28,6 +30,7 @@ function RequestHoldSession({ pharmacyId, medicine }) {
 }
 export default function RequestHold({ pharmacyId, medicine }) {
   const { user } = useAuth() || {};
-  if (!user || getUserRole(user) !== 'customer' || !pharmacyId || !medicine?._id || !Number.isSafeInteger(medicine.quantity) || medicine.quantity <= 0) return null;
+  const timestamp = useSyncExternalStore(pharmacyClock.subscribe, pharmacyClock.getSnapshot, pharmacyClock.getSnapshot);
+  if (!user || getUserRole(user) !== 'customer' || !pharmacyId || !medicine?._id || !isMedicineAvailable(medicine, new Date(timestamp))) return null;
   return <RequestHoldSession key={`${pharmacyId}:${medicine._id}:${user.id || user._id}`} pharmacyId={pharmacyId} medicine={medicine} />;
 }

@@ -1,3 +1,4 @@
+const { expiryCutoffDate } = require('../../shared/medicineExpiry.mjs');
 const { HOLD_DURATION_MS } = require('./holdPolicy');
 const mongoose = require('mongoose');
 const Pharmacy = require('../models/Pharmacy');
@@ -12,12 +13,12 @@ async function acceptHold(id, pharmacyId, ownerId, clock = () => new Date()) {
     const acceptedAt = clock(), expiresAt = new Date(acceptedAt.getTime() + HOLD_DURATION_MS);
     const hold = await HoldRequest.findOneAndUpdate({ _id: id, pharmacy: pharmacyId, status: 'pending' }, { $set: { status: 'accepted', acceptedAt, expiresAt } }, { session, returnDocument: 'after', runValidators: true });
     if (!hold) throw problem(409, 'This request is no longer pending. Refresh the requests.');
-    const stock = await Pharmacy.updateOne({ _id: pharmacyId, owner: ownerId, inventory: { $elemMatch: { _id: hold.medicine, quantity: { $gte: hold.quantity } } } }, {
+    const stock = await Pharmacy.updateOne({ _id: pharmacyId, owner: ownerId, inventory: { $elemMatch: { _id: hold.medicine, quantity: { $gte: hold.quantity }, $or: [{ expiryDate: null }, { expiryDate: { $gte: expiryCutoffDate(acceptedAt) } }] } } }, {
       // Existing owner inventory saves use optimistic concurrency: invalidate stale snapshots.
       $inc: { 'inventory.$.quantity': -hold.quantity, __v: 1 },
       $set: { 'inventory.$.updatedAt': new Date() },
     }, { session });
-    if (stock.modifiedCount !== 1) throw problem(409, 'There is not enough current stock, or the medicine/pharmacy is no longer available. The request remains pending.');
+    if (stock.modifiedCount !== 1) throw problem(409, 'There is not enough current stock, the medicine is expired, or the medicine/pharmacy is no longer available. The request remains pending.');
     accepted = hold;
   });
   return accepted;

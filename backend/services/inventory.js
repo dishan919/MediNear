@@ -1,3 +1,4 @@
+const { parseExpiryDate, isMedicineUsable } = require('../../shared/medicineExpiry.mjs');
 function validateMedicine(body) {
   if (!body || typeof body !== "object") throw new Error("Medicine details required");
   const result = {};
@@ -8,6 +9,7 @@ function validateMedicine(body) {
   }
   if (!Number.isSafeInteger(body.quantity) || body.quantity < 0) throw new Error("Quantity must be a non-negative whole number");
   result.quantity = body.quantity;
+  if (body.expiryDate !== undefined) result.expiryDate = parseExpiryDate(body.expiryDate);
   result.imageUrl = validateImageUrl(body.imageUrl);
   if (body.price !== undefined && body.price !== null && body.price !== "") {
     if (typeof body.price !== "number" || !Number.isFinite(body.price) || body.price < 0) throw new Error("Price must be a non-negative number");
@@ -28,7 +30,7 @@ function validateImageUrl(value) {
   if (parsed.protocol !== "https:" || parsed.username || parsed.password) throw new Error("Image URL must use HTTPS without embedded credentials");
   return url;
 }
-function publicMedicine(m) {
-  return { _id: m._id, name: m.name, genericName: m.genericName, brand: m.brand, imageUrl: m.imageUrl || "", price: m.price, quantity: m.quantity, availability: m.quantity > 0 ? "Available" : "Out of Stock", createdAt: m.createdAt, updatedAt: m.updatedAt };
+function publicMedicine(m, now = new Date()) {
+  return { _id: m._id, name: m.name, genericName: m.genericName, brand: m.brand, imageUrl: m.imageUrl || "", price: m.price, expiryDate: m.expiryDate ?? null, quantity: m.quantity, availability: !isMedicineUsable(m, now) ? "Expired" : m.quantity > 0 ? "Available" : "Out of Stock", createdAt: m.createdAt, updatedAt: m.updatedAt };
 }
 module.exports = { validateMedicine, matchesMedicine, validateImageUrl, publicMedicine };

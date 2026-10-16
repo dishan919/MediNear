@@ -14,6 +14,7 @@ const pharmacySchema = new mongoose.Schema(
       createdAt: { type: Date, default: Date.now },
       quantity: { type: Number, required: true, min: 0, validate: Number.isSafeInteger },
       price: { type: Number, min: 0 },
+      expiryDate: { type: Date, default: null },
       updatedAt: { type: Date, default: Date.now },
     }],
     name: {

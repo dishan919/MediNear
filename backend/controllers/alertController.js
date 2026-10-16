@@ -1,3 +1,4 @@
+const { isMedicineUsable } = require('../../shared/medicineExpiry.mjs');
 const mongoose = require('mongoose');
 const Pharmacy = require('../models/Pharmacy');
 const Subscription = require('../models/RestockSubscription');
@@ -29,12 +30,14 @@ exports.subscribe = handler(async (req, res) => {
   const pharmacyId = id(req.body?.pharmacy), medicineId = id(req.body?.medicine);
   // Validate before topology inspection so bad input gets its normal 4xx response.
   const { medicine } = await pharmacyMedicine(pharmacyId, medicineId);
+  if (!isMedicineUsable(medicine)) throw error(409, 'This medicine is expired or expiry information is unavailable. A restock alert cannot be added.');
   if (medicine.quantity > 0) throw error(409, 'Medicine is already available');
   let subscription;
   if (await supportsTransactions()) {
     // Atlas/replica-set path preserves serialization with concurrent restocks.
     await mongoose.connection.transaction(async session => {
       const { medicine: current } = await pharmacyMedicine(pharmacyId, medicineId, session);
+      if (!isMedicineUsable(current)) throw error(409, 'This medicine is expired or expiry information is unavailable. A restock alert cannot be added.');
       if (current.quantity > 0) throw error(409, 'Medicine is already available');
       await Pharmacy.updateOne({ _id: pharmacyId }, { $inc: { __v: 1 } }, { session });
       [subscription] = await Subscription.create([{ customer: req.user._id, pharmacy: pharmacyId, medicine: medicineId }], { session });

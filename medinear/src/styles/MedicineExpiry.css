@@ -1,0 +1,11 @@
+.mn-medicine-expiry { display: flex; flex-direction: column; gap: 6px; min-width: 0; overflow-wrap: anywhere; }
+.mn-expiry-label { font-size: 12px; font-weight: 600; }
+.mn-expiry-expired { color: #9f2635; }
+.mn-expiry-expiring-soon { color: #805712; }
+.mn-expiry-valid { color: #087b59; }
+.mn-expiry-unknown { color: #61756e; }
+.mn-expiry-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.mn-expiry-controls select { min-height: 44px; max-width: 100%; padding: 8px; border: 1px solid #ccdcd3; border-radius: 8px; font: inherit; }
+.mn-expiry-summary { font-size: 13px; margin: 12px 0; }
+.mn-inventory-table td[data-label="Expiry"] { overflow-wrap: anywhere; }
+@media(max-width: 680px) { .mn-inventory-table td[data-label="Expiry"] > div { text-align: right; } .mn-expiry-controls { align-items: stretch; flex-direction: column; } }
