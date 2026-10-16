@@ -1,3 +1,5 @@
+import { photoFeedback } from '../utils/toastFeedback';
+import { useToast } from '../auth/ToastContext';
 import { useEffect, useRef, useState } from 'react';
 import api from '../api/api';
 import { photoSource, uploadProfilePhoto, removeProfilePhoto, validatePhotoFile } from '../utils/profilePhoto';
@@ -25,6 +27,7 @@ export function PhotoControls({ preview, busy, disabled, error, message, onChoos
 }
 
 export default function ProfilePhoto({ user, initials, onSaved, onBusyChange, disabled = false }) {
+  const { showToast } = useToast();
   const picker = useRef(null), pending = useRef(false), cancelRef = useRef(null), removeRef = useRef(null);
   const [confirming, setConfirming] = useState(false), [removing, setRemoving] = useState(false);
   useEffect(() => { if (confirming) cancelRef.current?.focus(); }, [confirming]);
@@ -43,7 +46,7 @@ export default function ProfilePhoto({ user, initials, onSaved, onBusyChange, di
     pending.current = true; setBusy(true); onBusyChange?.(true); setError(''); setMessage('');
     try {
       const result = await uploadProfilePhoto(api, selection.file, localStorage.getItem('token'));
-      onSaved(result.profileImage); setSelection(null); setMessage(result.message || 'Profile photo saved.');
+      onSaved(result.profileImage); setSelection(null); showToast(photoFeedback());
     } catch (e) { setSelection(null); setError(e.response?.data?.message || 'Unable to save photo. Your existing photo has not changed.'); }
     finally { pending.current = false; setBusy(false); onBusyChange?.(false); }
   }
@@ -63,7 +66,7 @@ export default function ProfilePhoto({ user, initials, onSaved, onBusyChange, di
     try {
       const result = await removeProfilePhoto(api, localStorage.getItem('token'));
       onSaved(result.user.profileImage); setSelection(null); setConfirming(false);
-      setMessage(result.message || 'Profile photo removed.');
+      showToast(photoFeedback(true));
     } catch (e) { setError(e.response?.data?.message || 'Unable to remove photo. Please try again.'); }
     finally { pending.current = false; setBusy(false); setRemoving(false); onBusyChange?.(false); }
   }

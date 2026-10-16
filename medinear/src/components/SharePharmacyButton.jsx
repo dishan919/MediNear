@@ -1,4 +1,6 @@
-import { useId, useRef, useState } from 'react';
+import { shareFeedback } from '../utils/toastFeedback';
+import { useToast } from '../auth/ToastContext';
+import { useEffect, useId, useRef, useState } from 'react';
 import Icon from './Icon';
 import { sharePharmacy } from '../utils/sharePharmacy';
 
@@ -9,14 +11,23 @@ export function ShareFeedback({ result, inputId }) {
   </div>;
 }
 export default function SharePharmacyButton({ pharmacy }) {
+  const { showToast } = useToast();
+  const mounted = useRef(false);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const [busy, setBusy] = useState(false), [result, setResult] = useState(null);
   const pending = useRef(false), id = useId();
   async function share() {
     if (pending.current) return;
     pending.current = true; setBusy(true); setResult(null);
-    try { setResult(await sharePharmacy(pharmacy)); }
-    catch { setResult({ status: 'error', message: 'Unable to share this pharmacy. Please try again.' }); }
-    finally { pending.current = false; setBusy(false); }
+    try {
+      const response = await sharePharmacy(pharmacy);
+      if (!mounted.current) return;
+      const feedback = shareFeedback(response);
+      if (feedback) showToast(feedback);
+      if (response.status === 'error' && response.url) setResult(response);
+    }
+    catch { if (mounted.current) showToast({ type: 'error', message: 'Unable to share this pharmacy. Please try again.' }); }
+    finally { pending.current = false; if (mounted.current) setBusy(false); }
   }
   return <div className="mn-share-action"><button type="button" className="mn-button mn-secondary" aria-label={`Share ${pharmacy.name}`} aria-busy={busy} disabled={busy} onClick={share}><Icon name="share" size={18} />{busy ? 'Sharing...' : 'Share'}</button><ShareFeedback result={result} inputId={`${id}-link`} /></div>;
 }

@@ -1,3 +1,4 @@
+import { ToastProvider } from './components/ToastProvider';
 import {
   BrowserRouter,
   Routes,
@@ -27,7 +28,7 @@ import Notifications from './pages/Notifications';
 function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
+      <ToastProvider><AuthProvider>
         <AlertsProvider><Routes>
           <Route
             path="/login"
@@ -92,7 +93,7 @@ function App() {
             element={<Navigate to="/" replace />}
           />
         </Routes></AlertsProvider>
-      </AuthProvider>
+      </AuthProvider></ToastProvider>
     </BrowserRouter>
   );
 }

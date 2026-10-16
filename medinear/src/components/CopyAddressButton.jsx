@@ -1,3 +1,5 @@
+import { copyAddressFeedback } from '../utils/toastFeedback';
+import { useToast } from '../auth/ToastContext';
 import { useEffect, useRef, useState } from 'react';
 import { copyPharmacyAddress } from '../utils/copyPharmacyAddress';
 export function CopyAddressControl({ address, busy, result, onCopy }) {
@@ -7,14 +9,15 @@ export function CopyAddressControl({ address, busy, result, onCopy }) {
   </div>;
 }
 export default function CopyAddressButton({ address }) {
-  const [busy, setBusy] = useState(false), [result, setResult] = useState(null);
+  const { showToast } = useToast();
+  const [busy, setBusy] = useState(false);
   const pending = useRef(false), mounted = useRef(false);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   async function copy() {
     if (pending.current || !address) return;
-    pending.current = true; setBusy(true); setResult(null);
-    try { const response = await copyPharmacyAddress(address); if (mounted.current) setResult(response); }
+    pending.current = true; setBusy(true);
+    try { const response = await copyPharmacyAddress(address); if (mounted.current) { showToast(copyAddressFeedback(response)); } }
     finally { pending.current = false; if (mounted.current) setBusy(false); }
   }
-  return <CopyAddressControl address={address} busy={busy} result={result} onCopy={copy} />;
+  return <CopyAddressControl address={address} busy={busy} onCopy={copy} />;
 }
