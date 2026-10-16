@@ -15,6 +15,7 @@ const owner = [protect, requireRole("pharmacy_owner")];
 router.get("/search", features.searchPharmacies);
 router.get("/mine", ...owner, features.getOwnedPharmacies);
 router.put("/:id/hours", ...owner, features.updateHours);
+router.get("/:id/inventory/analytics", ...owner, require("../controllers/inventoryAnalyticsController").getInventoryAnalytics);
 router.get("/:id/inventory", ...owner, features.inventory);
 router.post("/:id/inventory", ...owner, features.inventory);
 router.patch("/:id/inventory/:medicineId", ...owner, features.inventory);
