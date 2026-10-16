@@ -1,3 +1,4 @@
+import PharmacyReviews from '../components/PharmacyReviews';
 import { pharmacyWhatsAppUrl } from '../utils/whatsappPharmacy';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom';
@@ -39,6 +40,7 @@ export function PharmacyDetailsView({ pharmacy, backTo = '/', location, favorite
       {tab === 'Opening Hours' && <><h2>Weekly opening hours</h2><p className="mn-muted">All times in {pharmacy.timezone}.</p>{pharmacy.openStatus === 'Hours unavailable' || !pharmacy.openingHours?.length ? <div className="mn-empty"><Icon name="clock" size={30} /><h3>Hours unavailable</h3><p>Call the pharmacy to confirm its opening hours.</p></div> : <dl className="mn-weekly-hours">{[...pharmacy.openingHours].sort((a, b) => a.day - b.day).map(h => <div key={h.day}><dt>{days[h.day]}</dt><dd>{h.closed ? 'Closed' : h.allDay ? '24 hours' : `${h.open} – ${h.close}${h.close < h.open ? ' (next day)' : ''}`}</dd></div>)}</dl>}</>}
       {tab === 'Location' && <><h2>Location & directions</h2><p className="mn-muted">{pharmacy.address}, {pharmacy.district}</p><PharmacyMap pharmacies={mapPharmacies} location={location} selectedId={pharmacy._id} onSelect={select} /><a className="mn-button mn-primary" href={directionsUrl(pharmacy)} target="_blank" rel="noopener noreferrer">Open Google Maps<Icon name="arrow" size={18} /></a></>}
     </section>
+    <PharmacyReviews pharmacyId={pharmacy._id} />
   </>;
 }
 export default function PharmacyDetails() {

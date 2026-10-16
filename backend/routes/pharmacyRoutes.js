@@ -22,6 +22,8 @@ router.delete("/:id/inventory/:medicineId", ...owner, features.inventory);
 
 router.get("/", getAllPharmacies);
 
+router.use("/:id/reviews", require("./reviewRoutes"));
+
 router.get("/:id", getPharmacyById);
 
 router.post("/", protect, requireRole("pharmacy_owner"), createPharmacy);

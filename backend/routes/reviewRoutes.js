@@ -1,0 +1,10 @@
+const router = require('express').Router({ mergeParams: true });
+const { protect, requireRole } = require('../middleware/authMiddleware');
+const reviews = require('../controllers/reviewController');
+const customer = [protect, requireRole('customer')];
+router.get('/', reviews.listReviews);
+router.get('/mine', ...customer, reviews.ownReview);
+router.post('/', ...customer, reviews.createReview);
+router.patch('/:reviewId', ...customer, reviews.mutateReview);
+router.delete('/:reviewId', ...customer, reviews.mutateReview);
+module.exports = router;
